@@ -1,0 +1,110 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "owner_email": {
+      "type": "string",
+      "description": "The client's Z8 login"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "verification",
+        "funds",
+        "card_request",
+        "card",
+        "payment"
+      ],
+      "description": "What the notification is about"
+    },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "info",
+        "success",
+        "warning"
+      ],
+      "default": "info"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string",
+      "description": "In-app path to open, e.g. /account"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "dedupe_key": {
+      "type": "string",
+      "description": "Same event delivered twice (webhook and sync) creates one notification"
+    }
+  },
+  "required": [
+    "owner_email",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "user"
+              }
+            },
+            {
+              "data.owner_email": "{{user.email}}"
+            }
+          ]
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "user"
+              }
+            },
+            {
+              "data.owner_email": "{{user.email}}"
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

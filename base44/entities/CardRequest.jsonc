@@ -1,0 +1,35 @@
+{
+  // A verified client's request for a Regular card, with the amount they
+  // deposited. It waits for an administrator; on approval the card is created
+  // at PhotonPay loaded with the approved amount.
+  "name": "CardRequest",
+  "type": "object",
+  "properties": {
+    "status": { "type": "string", "enum": ["pending", "approved", "rejected", "cancelled"], "default": "pending" },
+    "owner_email": { "type": "string", "description": "The client's Z8 login" },
+    "cardholder_record_id": { "type": "string", "description": "Cardholder record (PhotonPay card user)" },
+    "photon_cardholder_id": { "type": "string" },
+    "client_name": { "type": "string" },
+    "amount": { "type": "number", "description": "Opening amount the client asked for (USD)" },
+    "approved_amount": { "type": "number", "description": "Amount the card was created with (USD)" },
+    "currency": { "type": "string", "default": "USD" },
+    "client_note": { "type": "string" },
+    "tier": { "type": "string", "enum": ["emerald", "plum", "crimson", ""], "description": "Card tier requested: Emerald, Plum or Crimson" },
+    "purpose": { "type": "string", "enum": ["online_shopping", "advertising", "subscriptions", "travel", "business_expenses", "other", ""], "description": "What the client will use the card for" },
+    "purpose_detail": { "type": "string", "description": "The client's own words when the purpose is other" },
+    "requested_at": { "type": "string", "format": "date-time" },
+    "reviewed_by": { "type": "string" },
+    "reviewed_at": { "type": "string", "format": "date-time" },
+    "review_note": { "type": "string", "description": "Reason shown to the client when rejected" },
+    "last_error": { "type": "string", "description": "Why the last approval attempt failed at PhotonPay" },
+    "card_record_id": { "type": "string" },
+    "provider_request_id": { "type": "string" }
+  },
+  "required": ["status", "owner_email", "cardholder_record_id", "amount"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

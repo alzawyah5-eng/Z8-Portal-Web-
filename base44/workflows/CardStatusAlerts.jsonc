@@ -1,0 +1,42 @@
+{
+  "name": "Card Status Alerts",
+  "description": "Emails the programme administrators whenever a card's status changes (frozen, unfrozen, cancelled).",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Card",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ (.trigger.data.status // \"\") != (.trigger.old_data.status // \"\") }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "card_status_alerts",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "send_status_alert": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sendProgrammeAlert",
+            "args": {
+              "kind": "status",
+              "record_id": "${ .trigger.entity_id }",
+              "previous_status": "${ .trigger.old_data.status // \"unknown\" }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Alert administrators",
+            "description": "Card status changed"
+          }
+        }
+      }
+    ]
+  }
+}

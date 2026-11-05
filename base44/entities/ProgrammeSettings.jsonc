@@ -1,0 +1,28 @@
+{
+  // Programme-wide settings (a single record). Read by the photonpayCards
+  // function when a verified client requests a card.
+  "name": "ProgrammeSettings",
+  "type": "object",
+  "properties": {
+    "client_requests_enabled": { "type": "boolean", "default": true, "description": "Verified clients can request a Regular card themselves; it is created at PhotonPay straight away" },
+    "client_topups_enabled": { "type": "boolean", "default": true, "description": "Verified clients can add credit to their own active cards from their account balance" },
+    "max_cards_per_client": { "type": "number", "default": 1, "description": "How many cards (not cancelled) one client may hold through requests" },
+    "default_max_on_daily": { "type": "number", "description": "Daily cap for client-requested cards (USD); empty for none" },
+    "default_max_on_monthly": { "type": "number", "description": "Monthly cap (USD); empty for none" },
+    "default_max_on_percent": { "type": "number", "description": "Per-payment cap (USD); empty for none" },
+    "tier_emerald_enabled": { "type": "boolean", "default": true, "description": "Offer the Emerald card in the app" },
+    "tier_plum_enabled": { "type": "boolean", "default": true, "description": "Offer the Plum card in the app" },
+    "tier_crimson_enabled": { "type": "boolean", "default": true, "description": "Offer the Crimson card in the app" },
+    "tier_start_amount": { "type": "number", "default": 250, "description": "Total deposited (USD) to get the first card: Emerald" },
+    "tier_plum_from": { "type": "number", "default": 10000, "description": "Total deposited (USD) that unlocks the Plum card" },
+    "tier_crimson_from": { "type": "number", "default": 50000, "description": "Total deposited (USD) that unlocks the Crimson card" },
+    "funding_instructions": { "type": "string", "description": "How clients fund their Z8 account (bank details, cash points). Shown to verified clients." },
+    "min_opening_amount": { "type": "number", "default": 20, "description": "Smallest opening balance a client can request (USD). PhotonPay refuses Regular cards under 20 USD." }
+  },
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

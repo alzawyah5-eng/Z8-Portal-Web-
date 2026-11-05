@@ -1,0 +1,187 @@
+{
+  "name": "Cardholder",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "date_of_birth": {
+      "type": "string"
+    },
+    "nationality": {
+      "type": "string"
+    },
+    "address_line": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "postal_code": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "cert_type": {
+      "type": "string",
+      "enum": [
+        "id_card",
+        "passport",
+        "resident_permit"
+      ]
+    },
+    "cert_id": {
+      "type": "string"
+    },
+    "cert_country": {
+      "type": "string"
+    },
+    "photon_cardholder_id": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "pending",
+        "suspended"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "master_account_email": {
+      "type": "string",
+      "description": "Configured merchant account for the synced cardholder"
+    },
+    "provider_status": {
+      "type": "string",
+      "default": "unknown"
+    },
+    "review_status": {
+      "type": "string",
+      "default": "unknown"
+    },
+    "review_reason": {
+      "type": "string"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Z8 account that receives this cardholder's automatically issued card"
+    },
+    "device_ip": {
+      "type": "string",
+      "description": "Public IP of the device used to register (sent to PhotonPay as ipAddress when a card is issued automatically)"
+    },
+    "device_country": {
+      "type": "string",
+      "description": "Country the registering device was in (ISO 3166-1 alpha-2; sent as gpsCountry)"
+    },
+    "auto_issue_status": {
+      "type": "string",
+      "enum": [
+        "",
+        "requesting",
+        "requested",
+        "skipped",
+        "failed"
+      ],
+      "description": "Outcome of the client's latest card request"
+    },
+    "auto_issue_note": {
+      "type": "string"
+    },
+    "photon_created_at": {
+      "type": "string",
+      "description": "When the card user was created at PhotonPay (createdAt)"
+    },
+    "is_legal": {
+      "type": "string",
+      "enum": [
+        "",
+        "Y",
+        "N"
+      ],
+      "description": "PhotonPay isLegal: Y = legal person (company), N = individual"
+    },
+    "id_info_requirement": {
+      "type": "string",
+      "enum": [
+        "",
+        "Y",
+        "N"
+      ],
+      "description": "PhotonPay idInfoRequirement: Y = ID documents must be reviewed before a card can be issued"
+    }
+  },
+  "required": [
+    "full_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

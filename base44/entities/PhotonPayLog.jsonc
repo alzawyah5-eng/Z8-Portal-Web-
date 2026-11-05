@@ -1,0 +1,92 @@
+{
+  "name": "PhotonPayLog",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "outbound",
+        "webhook",
+        "sync",
+        "diagnostic"
+      ],
+      "description": "outbound: a call to PhotonPay; webhook: a notification from PhotonPay; sync: a daily sync summary; diagnostic: a connection check result"
+    },
+    "source": {
+      "type": "string",
+      "description": "Backend function that made or received the call"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "host": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "request_headers": {
+      "type": "string"
+    },
+    "request_body": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Request time"
+    },
+    "http_status": {
+      "type": "number"
+    },
+    "provider_code": {
+      "type": "string"
+    },
+    "response_headers": {
+      "type": "string"
+    },
+    "response_body": {
+      "type": "string"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Response time"
+    },
+    "duration_ms": {
+      "type": "number"
+    },
+    "error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "started_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

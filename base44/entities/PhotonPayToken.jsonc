@@ -1,0 +1,47 @@
+{
+  "name": "PhotonPayToken",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Environment and App ID the token belongs to"
+    },
+    "token": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "number",
+      "description": "Expiry time in epoch milliseconds"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "key",
+    "token"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

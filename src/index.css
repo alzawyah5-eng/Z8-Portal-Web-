@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 23% 98%;
+    --foreground: 245 18% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 245 18% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 245 18% 17%;
+    --primary: 329 68% 29%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 325 28% 96%;
+    --secondary-foreground: 329 50% 28%;
+    --muted: 220 18% 95%;
+    --muted-foreground: 237 8% 43%;
+    --accent: 153 52% 90%;
+    --accent-foreground: 158 62% 22%;
+    --destructive: 351 72% 42%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 230 19% 91%;
+    --input: 230 16% 86%;
+    --ring: 329 68% 29%;
+    --chart-1: 329 68% 39%;
+    --chart-2: 158 45% 43%;
+    --chart-3: 217 75% 60%;
+    --chart-4: 38 75% 62%;
+    --chart-5: 265 55% 66%;
+    --radius: 1rem;
+    --font-display: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-heading: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 237 8% 43%;
+    --sidebar-primary: 329 68% 29%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 325 28% 96%;
+    --sidebar-accent-foreground: 329 68% 29%;
+    --sidebar-border: 230 19% 91%;
+    --sidebar-ring: 329 68% 29%;
+  }
+  .dark {
+    --background: 245 20% 9%;
+    --foreground: 230 20% 96%;
+    --card: 245 18% 13%;
+    --card-foreground: 230 20% 96%;
+    --popover: 245 18% 13%;
+    --popover-foreground: 230 20% 96%;
+    --primary: 330 65% 78%;
+    --primary-foreground: 329 65% 16%;
+    --secondary: 245 16% 19%;
+    --secondary-foreground: 330 55% 86%;
+    --muted: 245 16% 19%;
+    --muted-foreground: 235 12% 68%;
+    --accent: 158 35% 22%;
+    --accent-foreground: 153 52% 86%;
+    --destructive: 351 75% 70%;
+    --destructive-foreground: 351 65% 12%;
+    --border: 245 14% 24%;
+    --input: 245 14% 30%;
+    --ring: 330 65% 78%;
+    --sidebar-background: 245 18% 13%;
+    --sidebar-foreground: 235 12% 68%;
+    --sidebar-primary: 330 65% 78%;
+    --sidebar-primary-foreground: 329 65% 16%;
+    --sidebar-accent: 245 16% 19%;
+    --sidebar-accent-foreground: 230 20% 96%;
+    --sidebar-border: 245 14% 24%;
+  }
+  * { @apply border-border; }
+  html, body { overscroll-behavior: none; -webkit-overflow-scrolling: touch; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  button, a, nav, [role='tab'], .filter-tab, .label-eyebrow { user-select: none; -webkit-user-select: none; }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 3px solid hsl(var(--ring) / .45);
+    outline-offset: 4px;
+  }
+  .font-display { font-weight: 700; letter-spacing: -.035em; }
+  ::selection { background: hsl(var(--primary) / .13); }
+}
+@layer components {
+  .label-eyebrow { @apply text-xs font-medium normal-case tracking-normal text-muted-foreground; }
+  .num { @apply font-body tabular-nums; }
+  .surface {
+    @apply rounded-[22px] border border-border bg-card;
+    box-shadow: 0 3px 16px -10px rgb(32 25 47 / .12);
+  }
+  .page-header h1 { @apply text-[30px] leading-tight sm:text-[36px]; }
+  .page-header p { @apply text-sm leading-relaxed; }
+  .filter-bar { @apply flex flex-col gap-3 rounded-2xl border border-border bg-card p-2.5 sm:flex-row sm:items-center sm:justify-between; }
+  .filter-tab { @apply min-h-11 rounded-xl px-3.5 py-2 text-[13px] font-medium capitalize tracking-normal transition-colors; }
+  .text-link { @apply inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary/75 sm:min-h-10; }
+  .empty-icon { @apply mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-primary; }
+  .ink-panel { background: linear-gradient(135deg, #92215d 0%, #61113e 60%, #34162f 100%); }
+  .grain::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: .12;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+  }
+}
+@media (max-width: 767px) {
+  /* Android / Play Console guidance: 48dp minimum touch targets. */
+  button:not([data-compact]),
+  [role="button"]:not([data-compact]),
+  summary,
+  a.text-link {
+    min-height: 48px;
+  }
+  button[aria-label]:not([data-compact]) {
+    min-width: 48px;
+  }
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    min-height: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

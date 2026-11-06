@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import StatusPill from "@/components/StatusPill";
 import AddFundsDialog from "@/components/funds/AddFundsDialog";
 import useClientAccount from "@/components/funds/useClientAccount";
+import PushTestCard from "@/components/notifications/PushTestCard";
 import { cn } from "@/lib/utils";
 import { ENTRY_KINDS, ENTRY_STATUS, entryDate, methodLabel, signedUsd, usd } from "@/lib/funds";
 
@@ -71,6 +72,7 @@ export default function Account() {
       </header>
 
       {error && <p role="alert" className="rounded-2xl border border-destructive/25 px-4 py-3 text-sm text-destructive">{error}</p>}
+      <PushTestCard />
       {loading && <div className="h-28 animate-pulse rounded-[22px] bg-muted" />}
 
       {!loading && !verified && (

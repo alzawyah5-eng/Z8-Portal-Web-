@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import StatusPill from "@/components/StatusPill";
 import ProgrammeDefaults from "@/components/settings/ProgrammeDefaults";
+import PushTestCard from "@/components/notifications/PushTestCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,6 +124,8 @@ export default function Settings() {
       {notice && (
         <div className="rounded-sm border border-border bg-secondary/60 px-4 py-2.5 text-[12px] text-muted-foreground">{notice}</div>
       )}
+
+      <PushTestCard />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="surface p-5">

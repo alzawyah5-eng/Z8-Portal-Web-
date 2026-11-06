@@ -191,6 +191,21 @@ export const z8 = {
   notifications: {
     enableWebPush: () => registerBrowserPush(),
     registerIfAllowed: () => registerBrowserPush({ requestPermission: false }),
+    sendTestPush: async () => {
+      const registration = await registerBrowserPush();
+      if (!registration.registered) {
+        const messages = {
+          denied: 'Allow notifications for this site in your browser settings, then try again.',
+          not_configured: 'Web push is not configured yet. Add the Firebase VAPID key to the web environment.',
+          unsupported: 'Push notifications are not supported by this browser.',
+          token_unavailable: 'This browser did not provide a push token. Check your connection and try again.',
+        };
+        throw new Z8ApiError(messages[registration.reason] || 'Browser notifications could not be enabled.', {
+          code: `push_${registration.reason || 'unavailable'}`,
+        });
+      }
+      return request('/me/notifications/test', { method: 'POST' });
+    },
     onForeground: async (callback) => {
       const messaging = await getBrowserMessaging();
       if (!messaging) return () => undefined;

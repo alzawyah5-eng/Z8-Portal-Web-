@@ -17,6 +17,7 @@ export default function PushTestCard() {
       if (payload?.data?.type === "notification_test" && active) {
         receivedRef.current = true;
         setResult((current) => current ? { ...current, received: true } : current);
+        void z8.notifications.showForegroundNotification(payload);
       }
     }).then((stop) => {
       if (active) unsubscribe = stop;

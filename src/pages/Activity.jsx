@@ -30,7 +30,9 @@ export default function Activity() {
   const requestVersion = useRef(0);
 
   const fetchPage = useCallback(async (nextCursor, version) => {
-    const query = admin ? {} : { owner_email: user?.email };
+    // User transaction reads are scoped to the authenticated account by the
+    // backend. owner_email is protected and must not be sent as a public filter.
+    const query = {};
     if (kind !== "all") query.kind = kind;
     if (search.trim()) query.merchant = { $regex: search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") };
     if (nextCursor) setLoadingMore(true);
@@ -48,7 +50,7 @@ export default function Activity() {
     } finally {
       if (version === requestVersion.current) { setLoading(false); setLoadingMore(false); }
     }
-  }, [admin, user?.email, kind, search]);
+  }, [kind, search]);
 
   useEffect(() => {
     const version = ++requestVersion.current;

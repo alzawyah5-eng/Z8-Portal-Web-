@@ -75,6 +75,35 @@ async function getBrowserMessaging() {
   return browserMessaging;
 }
 
+async function waitForActiveMessagingWorker(registration) {
+  let activeRegistration = registration;
+  if (!activeRegistration.active) {
+    let timer;
+    try {
+      activeRegistration = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => {
+          timer = window.setTimeout(() => reject(new Z8ApiError(
+            'The browser notification worker did not start. Refresh this page and try again.',
+            { code: 'service_worker_inactive' },
+          )), 15000);
+        }),
+      ]);
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+  const activeWorker = activeRegistration?.active;
+  const expectedPath = new URL('/firebase-messaging-sw.js', window.location.origin).pathname;
+  if (!activeWorker || new URL(activeWorker.scriptURL).pathname !== expectedPath) {
+    throw new Z8ApiError(
+      'The browser notification worker is not active yet. Refresh this page and try again.',
+      { code: 'service_worker_inactive' },
+    );
+  }
+  return activeRegistration;
+}
+
 /** @param {{ requestPermission?: boolean }} [options] */
 async function registerBrowserPush({ requestPermission = true } = {}) {
   if (!firebaseAuth?.currentUser || !('Notification' in window)) return { registered: false, reason: 'unsupported' };
@@ -94,8 +123,16 @@ async function registerBrowserPush({ requestPermission = true } = {}) {
   };
   const workerUrl = new URL('/firebase-messaging-sw.js', window.location.origin);
   for (const [key, value] of Object.entries(config)) if (value) workerUrl.searchParams.set(key, value);
-  const serviceWorkerRegistration = await navigator.serviceWorker.register(workerUrl, { updateViaCache: 'none' });
-  browserPushToken = await getToken(messaging, { vapidKey, serviceWorkerRegistration });
+  const registration = await navigator.serviceWorker.register(workerUrl, { updateViaCache: 'none' });
+  const serviceWorkerRegistration = await waitForActiveMessagingWorker(registration);
+  try {
+    browserPushToken = await getToken(messaging, { vapidKey, serviceWorkerRegistration });
+  } catch {
+    throw new Z8ApiError(
+      'This browser could not subscribe to push notifications. Refresh the page and try again.',
+      { code: 'push_subscription_failed' },
+    );
+  }
   if (!browserPushToken) return { registered: false, reason: 'token_unavailable' };
   await request('/me/devices', { method: 'POST', body: { token: browserPushToken, platform: 'web' } });
   return { registered: true };
@@ -191,6 +228,32 @@ export const z8 = {
   notifications: {
     enableWebPush: () => registerBrowserPush(),
     registerIfAllowed: () => registerBrowserPush({ requestPermission: false }),
+    showForegroundNotification: async (payload) => {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+      const title = payload?.notification?.title || 'Z8 Card Manager';
+      const body = payload?.notification?.body || 'You have a new update.';
+      const link = payload?.data?.link || '/';
+      try {
+        const registration = await navigator.serviceWorker.getRegistration('/');
+        if (registration?.active) {
+          await registration.showNotification(title, {
+            body,
+            icon: payload?.notification?.icon || '/favicon.ico',
+            data: { link },
+          });
+          return true;
+        }
+      } catch {
+        // Fall through to the browser Notification API when no active worker
+        // can display the foreground message.
+      }
+      try {
+        new Notification(title, { body, icon: payload?.notification?.icon || '/favicon.ico' });
+        return true;
+      } catch {
+        return false;
+      }
+    },
     sendTestPush: async () => {
       const registration = await registerBrowserPush();
       if (!registration.registered) {

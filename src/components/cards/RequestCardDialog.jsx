@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle2, CreditCard, Loader2, Lock, Wallet } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,7 @@ export default function RequestCardDialog({ open, onOpenChange, available = 0, m
     if (value > available) { setError(`Your available balance is ${usd(available)}.`); return; }
     setBusy(true); setError("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "request_card", payload: { amount: value, purpose, purposeDetail: purpose === "other" ? purposeDetail.trim() : "", ...(tier ? { tier } : {}) } });
+      const response = await z8.functions.invoke("photonpayCards", { action: "request_card", payload: { amount: value, purpose, purposeDetail: purpose === "other" ? purposeDetail.trim() : "", ...(tier ? { tier } : {}) } });
       if (response.data?.error) throw new Error(response.data.error);
       setDone(value);
       onRequested?.();

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Clock, CreditCard, Loader2, Plus, ShieldCheck, XCircle } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import AddFundsDialog from "@/components/funds/AddFundsDialog";
 import RequestCardDialog from "@/components/cards/RequestCardDialog";
@@ -23,7 +23,7 @@ export default function AccountStrip({ account, onChanged }) {
     if (!latest?.id) return;
     setCancelling(true); setError("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "cancel_card_request", payload: { requestId: latest.id } });
+      const response = await z8.functions.invoke("photonpayCards", { action: "cancel_card_request", payload: { requestId: latest.id } });
       if (response.data?.error) throw new Error(response.data.error);
       await refresh();
     } catch (err) {

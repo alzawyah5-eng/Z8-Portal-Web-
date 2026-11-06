@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Check, Eye, Loader2, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -25,7 +25,7 @@ export default function ApplicationsQueue({ onApproved }) {
   const [note, setNote] = useState("");
 
   const load = async () => {
-    const page = await base44.entities.CardholderApplication.filter({ status: "submitted" }, { sort: "-created_date", limit: 50 });
+    const page = await z8.entities.CardholderApplication.filter({ status: "submitted" }, { sort: "-created_date", limit: 50 });
     setApps(Array.isArray(page) ? page : page.items || []);
   };
 
@@ -35,7 +35,7 @@ export default function ApplicationsQueue({ onApproved }) {
     setBusy(app.id + action);
     setErrors((current) => ({ ...current, [app.id]: "" }));
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action, payload: { applicationId: app.id, ...payload } });
+      const response = await z8.functions.invoke("photonpayCards", { action, payload: { applicationId: app.id, ...payload } });
       if (response.data?.error) throw new Error(response.data.error);
       return response.data;
     } catch (err) {

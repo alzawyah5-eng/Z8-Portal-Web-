@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Eye, KeyRound, Loader2, Lock, Plus, Snowflake, Trash2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,7 @@ export default function CardDetail() {
   const requestVersion = useRef(0);
 
   const loadTransactions = async (version = requestVersion.current) => {
-    const page = await base44.entities.CardTransaction.filter({ card_id: id }, { sort: "-occurred_at", limit: 25 });
+    const page = await z8.entities.CardTransaction.filter({ card_id: id }, { sort: "-occurred_at", limit: 25 });
     if (version === requestVersion.current) setTransactions(page.items || []);
   };
 
@@ -67,7 +67,7 @@ export default function CardDetail() {
     setRevealed(null);
     (async () => {
       try {
-        const record = await base44.entities.Card.get(id).catch((error) => {
+        const record = await z8.entities.Card.get(id).catch((error) => {
           if ([403, 404].includes(error.status)) return null;
           throw error;
         });
@@ -102,7 +102,7 @@ export default function CardDetail() {
   useEffect(() => {
     if (!linkedId) return;
     const version = requestVersion.current;
-    base44.functions.invoke("photonpayCards", { action: "refresh", payload: { recordId: linkedId } })
+    z8.functions.invoke("photonpayCards", { action: "refresh", payload: { recordId: linkedId } })
       .then((response) => {
         if (version !== requestVersion.current || response.data?.error) return;
         const { balance, status, transaction_limit_type: limitType, cvv_blocked: blocked } = response.data || {};
@@ -123,12 +123,12 @@ export default function CardDetail() {
   useEffect(() => {
     if (!awaitingProvider) return;
     const version = requestVersion.current;
-    base44.functions.invoke("photonpayCards", { action: "resolve", payload: { recordId: card.id } })
+    z8.functions.invoke("photonpayCards", { action: "resolve", payload: { recordId: card.id } })
       .then(async (response) => {
         if (version !== requestVersion.current || response.data?.error) return;
         const { state, status, last4, masked_number: maskedNumber } = response.data || {};
         if (state === "issued") {
-          const record = await base44.entities.Card.get(card.id).catch(() => null);
+          const record = await z8.entities.Card.get(card.id).catch(() => null);
           if (version !== requestVersion.current) return;
           setCard((current) => record || { ...current, status, last4, masked_number: maskedNumber });
           await loadTransactions(version);
@@ -176,7 +176,7 @@ export default function CardDetail() {
     // Show the new state immediately; the provider response reconciles it, an error reverts it.
     setCard((current) => ({ ...current, status: nextStatus }));
     try {
-      const response = await base44.functions.invoke("photonpayCards", {
+      const response = await z8.functions.invoke("photonpayCards", {
         action,
         payload: { recordId: card.id },
       });
@@ -214,7 +214,7 @@ export default function CardDetail() {
     setBusy("reveal");
     setNotice("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", {
+      const response = await z8.functions.invoke("photonpayCards", {
         action: "detail",
         payload: { recordId: card.id, ...(typeof reason === "string" ? { reason } : {}) },
       });
@@ -234,7 +234,7 @@ export default function CardDetail() {
     setBusy("unblock");
     setNotice("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "unblock_cvv", payload: { recordId: card.id } });
+      const response = await z8.functions.invoke("photonpayCards", { action: "unblock_cvv", payload: { recordId: card.id } });
       if (response.data?.error) throw new Error(response.data.error);
       if (version !== requestVersion.current) return;
       setCvvBlocked(false);
@@ -253,7 +253,7 @@ export default function CardDetail() {
     setBusy("assign");
     setNotice("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "assign", payload: { recordId: card.id, ownerEmail } });
+      const response = await z8.functions.invoke("photonpayCards", { action: "assign", payload: { recordId: card.id, ownerEmail } });
       if (response.data?.error) throw new Error(response.data.error);
       if (version !== requestVersion.current) return;
       setCard((current) => ({ ...current, owner_email: response.data.owner_email }));

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, ReceiptText, RefreshCw, Search, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export default function Activity() {
     if (nextCursor) setLoadingMore(true);
     setError("");
     try {
-      const page = await base44.entities.CardTransaction.filter(query, {
+      const page = await z8.entities.CardTransaction.filter(query, {
         sort: "-occurred_at", limit: 30, ...(nextCursor ? { cursor: nextCursor } : {}),
       });
       if (version !== requestVersion.current) return;

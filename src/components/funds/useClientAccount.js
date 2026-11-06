@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 
 // Everything a client screen needs about getting a card: verification, the
 // latest card request, and the account balance. One load, shared by the
@@ -14,8 +14,8 @@ export default function useClientAccount({ enabled = true } = {}) {
     if (!enabled) return;
     try {
       const [reg, account] = await Promise.all([
-        base44.functions.invoke("photonpayCards", { action: "my_registration", payload: {} }),
-        base44.functions.invoke("photonpayCards", { action: "my_wallet", payload: {} }).catch(() => ({ data: null })),
+        z8.functions.invoke("photonpayCards", { action: "my_registration", payload: {} }),
+        z8.functions.invoke("photonpayCards", { action: "my_wallet", payload: {} }).catch(() => ({ data: null })),
       ]);
       setRegistration(reg.data || null);
       setWallet(account.data || null);

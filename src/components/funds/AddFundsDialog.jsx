@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Check, CheckCircle2, Copy, Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ export default function AddFundsDialog({ open, onOpenChange, instructions, min =
     try {
       // The proof is stored first; the deposit then carries its token.
       const proofToken = proof ? await uploadProof(proof) : "";
-      const response = await base44.functions.invoke("photonpayCards", {
+      const response = await z8.functions.invoke("photonpayCards", {
         action: "report_deposit",
         payload: { ...form, amount: Number(form.amount), ...(proofToken ? { proofToken, proofName: proof.name } : {}) },
       });

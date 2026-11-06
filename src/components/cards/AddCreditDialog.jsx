@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Loader2, Plus, Wallet } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { usd } from "@/lib/funds";
 
 const call = async (action, payload) => {
-  const response = await base44.functions.invoke("photonpayCards", { action, payload });
+  const response = await z8.functions.invoke("photonpayCards", { action, payload });
   if (response.data?.error) throw Object.assign(new Error(response.data.error), { data: response.data });
   return response.data;
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, BadgeCheck, Clock, CreditCard, ShieldCheck, XCircle } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import AddCardholderDialog from "@/components/cardholders/AddCardholderDialog";
@@ -21,7 +21,7 @@ export default function Verification() {
 
   const load = async () => {
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "my_registration", payload: {} });
+      const response = await z8.functions.invoke("photonpayCards", { action: "my_registration", payload: {} });
       if (response.data?.error) throw new Error(response.data.error);
       setApplication(response.data?.application || null);
       setIdentity(response.data?.identity || null);

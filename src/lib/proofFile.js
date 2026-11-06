@@ -1,6 +1,6 @@
 // Proof of payment for a deposit: a photo (handled like ID photos: HEIC
 // converted, large photos shrunk) or a PDF up to 6 MB.
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { prepareIdPhoto, readBase64 } from "@/lib/idPhoto";
 
 export const MAX_PROOF_BYTES = 6 * 1024 * 1024;
@@ -29,7 +29,7 @@ export async function prepareProof(file) {
 
 // Stores the file privately; returns a token bound to the signed-in account.
 export async function uploadProof(file) {
-  const response = await base44.functions.invoke("photonpayCards", {
+  const response = await z8.functions.invoke("photonpayCards", {
     action: "store_deposit_proof",
     payload: { dataBase64: await readBase64(file), fileName: file.name },
   });
@@ -42,7 +42,7 @@ export async function uploadProof(file) {
 export async function openProof(entryId, { admin = false } = {}) {
   const tab = window.open("", "_blank");
   try {
-    const response = await base44.functions.invoke("photonpayCards", { action: admin ? "deposit_proof" : "my_deposit_proof", payload: { entryId } });
+    const response = await z8.functions.invoke("photonpayCards", { action: admin ? "deposit_proof" : "my_deposit_proof", payload: { entryId } });
     if (response.data?.error || !response.data?.url) throw new Error(response.data?.error || "The proof could not be opened.");
     if (tab) tab.location.href = response.data.url;
     else window.location.assign(response.data.url);

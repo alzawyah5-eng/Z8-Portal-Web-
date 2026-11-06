@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CreditCard, Plus, Search, RefreshCw, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,8 +90,8 @@ export default function Cards() {
       if (search.trim()) query.nickname = { $regex: search.trim() };
       try {
         const [page, count] = await Promise.all([
-          base44.entities.Card.filter(query, { sort: "-created_date", limit: 24 }),
-          base44.entities.Card.count(query),
+          z8.entities.Card.filter(query, { sort: "-created_date", limit: 24 }),
+          z8.entities.Card.count(query),
         ]);
         if (!active) return;
         setCards(page.items || []);

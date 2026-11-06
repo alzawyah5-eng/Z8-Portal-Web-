@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ export default function VerifyPrompt() {
   useEffect(() => {
     if (!client || dismissed() || pathname.startsWith("/verification")) return;
     let active = true;
-    base44.functions.invoke("photonpayCards", { action: "my_registration", payload: {} })
+    z8.functions.invoke("photonpayCards", { action: "my_registration", payload: {} })
       .then((response) => {
         if (!active || response.data?.error) return;
         const status = response.data?.application?.status || "";

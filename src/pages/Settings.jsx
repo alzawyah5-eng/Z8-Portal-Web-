@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, LifeBuoy, Loader2, RefreshCw, Trash2, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import StatusPill from "@/components/StatusPill";
@@ -51,7 +51,7 @@ export default function Settings() {
     setBusy("check");
     setNotice("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "status" });
+      const response = await z8.functions.invoke("photonpayCards", { action: "status" });
       setStatus(response.data);
     } catch (error) {
       setNotice(error?.response?.data?.error || error.message);
@@ -64,7 +64,7 @@ export default function Settings() {
     setBusy("balance");
     setNotice("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "balance", payload: {} });
+      const response = await z8.functions.invoke("photonpayCards", { action: "balance", payload: {} });
       if (response.data?.error) throw new Error(response.data.error);
       setBalance(response.data);
     } catch (error) {
@@ -78,7 +78,7 @@ export default function Settings() {
     setBusy("diagnostics");
     setNotice("");
     try {
-      const response = await base44.functions.invoke("photonpayDiagnostics", {});
+      const response = await z8.functions.invoke("photonpayDiagnostics", {});
       setDiagnostics(response.data);
     } catch (error) {
       setNotice(error?.response?.data?.error || "The diagnostic check could not complete. Please try again.");
@@ -89,9 +89,9 @@ export default function Settings() {
     setBusy("delete");
     setNotice("");
     try {
-      const response = await base44.functions.invoke("deleteAccount", { confirm_email: user?.email });
+      const response = await z8.functions.invoke("deleteAccount", { confirm_email: user?.email });
       if (response.data?.error) throw new Error(response.data.error);
-      await base44.auth.logout();
+      await z8.auth.logout();
     } catch (error) {
       setNotice(error?.response?.data?.error || "We couldn't delete this account. Please try again or contact support.");
       setBusy("");

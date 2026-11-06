@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, ImageUp, Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,7 +99,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
   };
 
   const upload = async (photo, side) => {
-    const response = await base44.functions.invoke("photonpayCards", {
+    const response = await z8.functions.invoke("photonpayCards", {
       action: "upload_id_image",
       payload: { dataBase64: await readBase64(photo), fileName: photo.name, mimeType: photo.type },
     });
@@ -110,7 +110,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
   // The photo is stored by the backend, which returns a token bound to this
   // account: the client never names the storage path of its own ID document.
   const storePhoto = async (photo) => {
-    const response = await base44.functions.invoke("photonpayCards", {
+    const response = await z8.functions.invoke("photonpayCards", {
       action: "store_id_photo",
       payload: { dataBase64: await readBase64(photo), fileName: photo.name, mimeType: photo.type },
     });
@@ -126,7 +126,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
     const backPhotoToken = needsBack ? await storePhoto(back) : "";
     setBusy("Submitting for review…");
     const prefix = form.mobilePrefix.trim() ? "+" + form.mobilePrefix.replace(/[^\d]/g, "") : "";
-    const response = await base44.functions.invoke("photonpayCards", {
+    const response = await z8.functions.invoke("photonpayCards", {
       action: "submit_registration",
       payload: { ...form, email: undefined, mobilePrefix: prefix, frontPhotoToken, backPhotoToken },
     });
@@ -152,7 +152,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
       const reverseSide = needsBack ? await upload(back, "Back of ID") : undefined;
       setBusy("Registering the cardholder with PhotonPay…");
       const prefix = form.mobilePrefix.trim() ? "+" + form.mobilePrefix.replace(/[^\d]/g, "") : "";
-      const response = await base44.functions.invoke("photonpayCards", {
+      const response = await z8.functions.invoke("photonpayCards", {
         action: "add_holder",
         payload: { ...form, mobilePrefix: prefix, portrait, reverseSide },
       });

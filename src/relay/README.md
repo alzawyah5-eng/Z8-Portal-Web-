@@ -1,8 +1,8 @@
 # PhotonPay static IP relay
 
-PhotonPay can restrict API calls to allowlisted IPv4 addresses. Base44 functions
-have no fixed outbound IP, so every provider call is forwarded through this small
-relay instead and PhotonPay sees only the relay's address.
+PhotonPay can restrict API calls to allowlisted IPv4 addresses. When the local
+NestJS backend needs a fixed outbound IP, it forwards provider calls through
+this small relay so PhotonPay sees only the relay's address.
 
 `server.mjs` is the whole relay. Node 20+, no dependencies.
 
@@ -53,8 +53,8 @@ never handed to an unauthenticated caller.
 
 ## 3. HTTPS
 
-Base44 calls the relay over HTTPS, so terminate TLS on the same box. Caddy is the
-shortest path:
+The backend calls the relay over HTTPS, so terminate TLS on the same box. Caddy
+is the shortest path:
 
 ```bash
 sudo apt install -y caddy
@@ -66,7 +66,7 @@ provisioning is automatic.
 
 ## 4. Connect the app
 
-In the Z8 app secrets:
+In `Backend_z8-card-flow/.env`:
 
 - `PHOTONPAY_RELAY_URL` = `https://relay.example.com` (no trailing slash, no path)
 - `PHOTONPAY_RELAY_SECRET` = the `RELAY_SECRET` value from step 2

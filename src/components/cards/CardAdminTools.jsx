@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FlaskConical, Loader2, Settings2, Wallet } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Field from "@/components/forms/Field";
@@ -20,7 +20,7 @@ const TXN_TYPES = [
 ];
 
 async function call(action, payload) {
-  const response = await base44.functions.invoke("photonpayCards", { action, payload });
+  const response = await z8.functions.invoke("photonpayCards", { action, payload });
   if (response.data?.error) throw new Error(response.data.error);
   return response.data;
 }

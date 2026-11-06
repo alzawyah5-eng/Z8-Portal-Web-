@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { History, Loader2, Plus, Sparkles } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { AssistantTurn, TypingDots, UserMessage } from "@/components/assistant/MessageBubble";
 import AssistantComposer from "@/components/assistant/AssistantComposer";
@@ -62,7 +62,7 @@ export default function AssistantChat({ profile }) {
     setLoading(true);
     setError("");
     try {
-      const full = row?.id ? (await base44.agents.getConversation(row.id)) || row : row;
+      const full = row?.id ? (await z8.agents.getConversation(row.id)) || row : row;
       setConversation(full);
       setMessages(full?.messages || []);
       stickToBottom.current = true;
@@ -78,7 +78,7 @@ export default function AssistantChat({ profile }) {
     setLoading(true);
     setError("");
     try {
-      const created = await base44.agents.createConversation({
+      const created = await z8.agents.createConversation({
         agent_name: profile.agent,
         metadata: { name: profile.title, description: profile.eyebrow },
       });
@@ -101,18 +101,18 @@ export default function AssistantChat({ profile }) {
     setError("");
     (async () => {
       try {
-        const page = await base44.agents.listConversations({ q: { agent_name: profile.agent }, sort: "-updated_date", limit: 20 });
+        const page = await z8.agents.listConversations({ q: { agent_name: profile.agent }, sort: "-updated_date", limit: 20 });
         // Only this assistant's conversations, newest first.
         const rows = rowsOf(page).filter((row) => row.agent_name === profile.agent).sort((a, b) => stamp(b) - stamp(a));
         if (!active) return;
         setConversations(rows);
         if (rows[0]) {
-          const full = (await base44.agents.getConversation(rows[0].id)) || rows[0];
+          const full = (await z8.agents.getConversation(rows[0].id)) || rows[0];
           if (!active) return;
           setConversation(full);
           setMessages(full?.messages || []);
         } else {
-          const created = await base44.agents.createConversation({
+          const created = await z8.agents.createConversation({
             agent_name: profile.agent,
             metadata: { name: profile.title, description: profile.eyebrow },
           });
@@ -132,7 +132,7 @@ export default function AssistantChat({ profile }) {
 
   useEffect(() => {
     if (!conversation?.id) return undefined;
-    const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
+    const unsubscribe = z8.agents.subscribeToConversation(conversation.id, (data) => {
       setMessages(data.messages || []);
     });
     return () => unsubscribe();
@@ -160,7 +160,7 @@ export default function AssistantChat({ profile }) {
     setError("");
     stickToBottom.current = true;
     try {
-      await base44.agents.addMessage(conversation, { role: "user", content });
+      await z8.agents.addMessage(conversation, { role: "user", content });
     } catch {
       setDraft(content);
       setError("Your message could not be sent. Please try again.");

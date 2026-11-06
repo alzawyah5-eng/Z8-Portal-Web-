@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ExternalLink, Loader2, Plus, RefreshCw } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import AddCardholderDialog from "@/components/cardholders/AddCardholderDialog";
 import ApplicationsQueue from "@/components/cardholders/ApplicationsQueue";
@@ -41,7 +41,7 @@ export default function Cardholders() {
     const items = [];
     let cursor;
     for (let page = 0; page < 20; page++) {
-      const result = await base44.entities.Cardholder.list({ sort: "-created_date", limit: 100, ...(cursor ? { cursor } : {}) });
+      const result = await z8.entities.Cardholder.list({ sort: "-created_date", limit: 100, ...(cursor ? { cursor } : {}) });
       items.push(...(Array.isArray(result) ? result : result.items || []));
       if (Array.isArray(result) || !result.has_more) break;
       cursor = result.next_cursor;
@@ -50,9 +50,9 @@ export default function Cardholders() {
     // Everything else the page cross-references: cards per card user, Z8
     // accounts, and client applications.
     const [cardPage, userPage, appPage] = await Promise.all([
-      base44.entities.Card.list({ limit: 500 }).catch(() => []),
-      base44.entities.User.list({ limit: 500 }).catch(() => []),
-      base44.entities.CardholderApplication.list({ sort: "-created_date", limit: 500 }).catch(() => []),
+      z8.entities.Card.list({ limit: 500 }).catch(() => []),
+      z8.entities.User.list({ limit: 500 }).catch(() => []),
+      z8.entities.CardholderApplication.list({ sort: "-created_date", limit: 500 }).catch(() => []),
     ]);
     const asList = (page) => (Array.isArray(page) ? page : page?.items || []);
     setCards(asList(cardPage));
@@ -84,7 +84,7 @@ export default function Cardholders() {
     try {
       let hasMore = false;
       for (let pageIndex = 1; pageIndex <= 20; pageIndex++) {
-        const response = await base44.functions.invoke("photonpayCards", { action: "sync_holders", payload: { pageIndex } });
+        const response = await z8.functions.invoke("photonpayCards", { action: "sync_holders", payload: { pageIndex } });
         if (response.data?.error) throw new Error(response.data.error);
         synced += response.data?.synced || 0;
         hasMore = Boolean(response.data?.has_more);
@@ -98,7 +98,16 @@ export default function Cardholders() {
           ? "Up to date · " + synced + " clients checked with PhotonPay."
           : "Synced " + synced + " clients and their PhotonPay review statuses.");
     } catch (err) {
-      const message = explainSyncError(err?.response?.data?.error || "Client sync failed. Check the main account connection.");
+      // The local API client throws Z8ApiError with the server's safe message
+      // on `message` (unlike Axios's response.data.error shape used before).
+      // Prefer that detail so admins can see whether PhotonPay rejected the
+      // credentials, permission, network, or cardholder endpoint.
+      const message = explainSyncError(
+        err?.details?.error
+        || err?.response?.data?.error
+        || err?.message
+        || "Client sync failed. Check the main account connection.",
+      );
       if (quiet) {
         setNotice("Automatic sync couldn't run. " + message);
       } else {

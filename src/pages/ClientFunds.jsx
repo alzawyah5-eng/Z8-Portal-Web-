@@ -3,7 +3,7 @@ import { Check, Loader2, Paperclip, Plus, RefreshCw, Search, X } from "lucide-re
 import ProofPicker from "@/components/funds/ProofPicker";
 import { openProof, uploadProof } from "@/lib/proofFile";
 import { tierInfo } from "@/lib/tiers";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -21,7 +21,7 @@ function TierBadge({ tier }) {
 }
 
 const call = async (action, payload = {}) => {
-  const response = await base44.functions.invoke("photonpayCards", { action, payload });
+  const response = await z8.functions.invoke("photonpayCards", { action, payload });
   if (response.data?.error) throw new Error(response.data.error);
   return response.data;
 };

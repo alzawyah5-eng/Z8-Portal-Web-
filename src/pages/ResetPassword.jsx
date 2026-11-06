@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Loader2, AlertTriangle } from "lucide-react";
+import { Lock, Loader2, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 
 export default function ResetPassword() {
@@ -13,6 +13,8 @@ export default function ResetPassword() {
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +27,7 @@ export default function ResetPassword() {
     }
     setLoading(true);
     try {
-      await base44.auth.resetPassword({ resetToken, newPassword });
+      await z8.auth.resetPassword({ resetToken, newPassword });
       window.location.href = "/login";
     } catch (err) {
       setError(err.message || "Failed to reset password");
@@ -71,15 +73,18 @@ export default function ResetPassword() {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="new-password"
               autoFocus
-              placeholder="••••••••"
+              placeholder="•••••••••••"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="pl-10 h-12"
+              className="pl-10 pr-12 h-12"
               required
             />
+            <button type="button" onClick={() => setShowPassword((shown) => !shown)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>
+              {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+            </button>
           </div>
         </div>
         <div className="space-y-2">
@@ -88,14 +93,17 @@ export default function ResetPassword() {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
               id="confirm"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               autoComplete="new-password"
-              placeholder="••••••••"
+              placeholder="•••••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 h-12"
+              className="pl-10 pr-12 h-12"
               required
             />
+            <button type="button" onClick={() => setShowConfirmPassword((shown) => !shown)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={showConfirmPassword ? "Hide password" : "Show password"} aria-pressed={showConfirmPassword}>
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+            </button>
           </div>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>

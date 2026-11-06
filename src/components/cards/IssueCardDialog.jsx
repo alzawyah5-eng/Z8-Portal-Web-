@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ export default function IssueCardDialog({ open, onOpenChange }) {
     setStep(0);
     setError("");
     setAccepted(false);
-    base44.entities.Cardholder.list({ sort: "-created_date", limit: 100 })
+    z8.entities.Cardholder.list({ sort: "-created_date", limit: 100 })
       .then(page => { if (active) setCardholders(Array.isArray(page) ? page : page.items || []); })
       .catch(() => { if (active) setCardholders([]); });
     return () => { active = false; };
@@ -60,7 +60,7 @@ export default function IssueCardDialog({ open, onOpenChange }) {
     setError("");
     let providerReference = "";
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action: "issue", payload: {
+      const response = await z8.functions.invoke("photonpayCards", { action: "issue", payload: {
         cardholderRecordId: selected.id, ownerEmail: form.email,
         cardCurrency: "USD", cardType: form.card_type,
         cardFormFactor: "virtual_card", gpsCountry: form.gps_country,
@@ -76,7 +76,7 @@ export default function IssueCardDialog({ open, onOpenChange }) {
       const holderName = selected.full_name;
       const ownerEmail = response.data.owner_email;
       const status = mapStatus(apiCard.status);
-      const record = await base44.entities.Card.create({
+      const record = await z8.entities.Card.create({
         nickname: form.nickname || holderName, owner_email: ownerEmail,
         masked_number: apiCard.masked_number || "", last4: apiCard.last4 || "",
         currency: "USD", card_type: form.card_type,
@@ -89,7 +89,7 @@ export default function IssueCardDialog({ open, onOpenChange }) {
         photon_cardholder_id: response.data.photon_cardholder_id,
         request_id: providerReference,
       });
-      await base44.entities.CardTransaction.create({
+      await z8.entities.CardTransaction.create({
         kind: "event", owner_email: ownerEmail,
         event: status === "active" ? "Card issued" : "Card requested",
         card_id: record.id, card_last4: record.last4, card_nickname: record.nickname,

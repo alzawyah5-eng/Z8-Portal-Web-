@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, CheckCircle2, CreditCard, Loader2, Plus, ReceiptText, RefreshCw, Users, Wallet } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import CardTile from "@/components/cards/CardTile";
@@ -26,7 +26,7 @@ async function usdTotals() {
   let spend = 0;
   let cursor;
   for (let page = 0; page < 10; page += 1) {
-    const result = await base44.entities.Card.filter({ currency: "USD", form_factor: "virtual_card" }, { limit: 200, cursor });
+    const result = await z8.entities.Card.filter({ currency: "USD", form_factor: "virtual_card" }, { limit: 200, cursor });
     (result.items || []).forEach((card) => {
       balance += card.balance || 0;
       spend += card.monthly_spend || 0;
@@ -56,11 +56,11 @@ export default function Dashboard() {
     (async () => {
       try {
         const [cardPage, txPage, cardCount, activeCount, pendingCount, usd] = await Promise.all([
-          base44.entities.Card.filter({ form_factor: "virtual_card" }, { sort: "-created_date", limit: 3 }),
-          base44.entities.CardTransaction.filter({}, { sort: "-occurred_at", limit: 6 }),
-          base44.entities.Card.count({ form_factor: "virtual_card" }),
-          base44.entities.Card.count({ status: "active", form_factor: "virtual_card" }),
-          base44.entities.Card.count({ status: "pending", form_factor: "virtual_card" }),
+          z8.entities.Card.filter({ form_factor: "virtual_card" }, { sort: "-created_date", limit: 3 }),
+          z8.entities.CardTransaction.filter({}, { sort: "-occurred_at", limit: 6 }),
+          z8.entities.Card.count({ form_factor: "virtual_card" }),
+          z8.entities.Card.count({ status: "active", form_factor: "virtual_card" }),
+          z8.entities.Card.count({ status: "pending", form_factor: "virtual_card" }),
           usdTotals(),
         ]);
         if (!active) return;
@@ -79,7 +79,7 @@ export default function Dashboard() {
         if (active) setLoading(false);
       }
     })();
-    if (admin) base44.functions.invoke("photonpayCards", { action: "status" })
+    if (admin) z8.functions.invoke("photonpayCards", { action: "status" })
       .then((response) => { if (active) setConnection(response.data); })
       .catch(() => { if (active) setConnection({ connected: false }); });
     return () => { active = false; };

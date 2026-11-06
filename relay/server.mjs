@@ -1,5 +1,5 @@
-// PhotonPay static IP relay.
-// Runs on a small VPS with a fixed IPv4 address. Base44 forwards provider calls
+﻿// PhotonPay static IP relay.
+// Runs on a small VPS with a fixed IPv4 address. The NestJS API forwards calls
 // here, this server forwards them to PhotonPay, so PhotonPay always sees the
 // allowlisted address. Node 20 or newer, no dependencies.
 //
@@ -128,3 +128,4 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`PhotonPay static IP relay ${VERSION} listening on port ${PORT}`);
 });
+

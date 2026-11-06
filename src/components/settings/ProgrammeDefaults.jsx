@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -36,7 +36,7 @@ export default function ProgrammeDefaults() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    base44.entities.ProgrammeSettings.list({ limit: 1 })
+    z8.entities.ProgrammeSettings.list({ limit: 1 })
       .then((page) => { const row = (Array.isArray(page) ? page : page.items || [])[0] || null; setRecord(row); setForm(toForm(row)); })
       .catch(() => {});
   }, []);
@@ -63,7 +63,7 @@ export default function ProgrammeDefaults() {
       tier_crimson_enabled: Boolean(form.tier_crimson_enabled),
     };
     try {
-      const saved = record ? await base44.entities.ProgrammeSettings.update(record.id, data) : await base44.entities.ProgrammeSettings.create(data);
+      const saved = record ? await z8.entities.ProgrammeSettings.update(record.id, data) : await z8.entities.ProgrammeSettings.create(data);
       setRecord(saved || { ...record, ...data });
       setMessage("Saved.");
     } catch (error) {

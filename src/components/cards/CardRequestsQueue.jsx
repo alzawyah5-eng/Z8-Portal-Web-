@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, Check, Loader2, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CountrySelect from "@/components/forms/CountrySelect";
@@ -26,7 +26,7 @@ function RequestRow({ row, country, account, onDone }) {
   const run = async (action, payload) => {
     setBusy(action); setError("");
     try {
-      const response = await base44.functions.invoke("photonpayCards", { action, payload: { requestId: row.id, ...payload } });
+      const response = await z8.functions.invoke("photonpayCards", { action, payload: { requestId: row.id, ...payload } });
       if (response.data?.error) throw new Error(response.data.error);
       onDone();
     } catch (err) {
@@ -105,11 +105,11 @@ export default function CardRequestsQueue({ onChanged }) {
 
   useEffect(() => {
     let active = true;
-    base44.entities.CardRequest.filter({ status: "pending" }, { sort: "created_date", limit: 50 })
+    z8.entities.CardRequest.filter({ status: "pending" }, { sort: "created_date", limit: 50 })
       .then((page) => { if (active) setRows(Array.isArray(page) ? page : page.items || []); })
       .catch(() => { if (active) setRows([]); });
     // Each client's balance, so the amount loaded matches what they deposited.
-    base44.functions.invoke("photonpayCards", { action: "wallet_overview", payload: {} })
+    z8.functions.invoke("photonpayCards", { action: "wallet_overview", payload: {} })
       .then((response) => { if (active) setAccounts(Object.fromEntries((response.data?.clients || []).map((client) => [client.email, client]))); })
       .catch(() => {});
     return () => { active = false; };

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, BadgeCheck, Bell, CheckCheck, CreditCard, Loader2, Receipt, Wallet } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { z8 } from "@/api/z8Client";
 import { cn } from "@/lib/utils";
 
 const POLL_MS = 60_000;
@@ -26,12 +26,13 @@ export default function NotificationBell({ email }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [marking, setMarking] = useState(false);
+  const [pushStatus, setPushStatus] = useState("");
   const wrap = useRef(null);
 
   const load = useCallback(async () => {
     if (!email) return;
     try {
-      const page = await base44.entities.Notification.filter({ owner_email: String(email).toLowerCase() }, { sort: "-created_date", limit: 30 });
+      const page = await z8.entities.Notification.filter({}, { sort: "-created_date", limit: 30 });
       setItems(Array.isArray(page) ? page : page?.items || []);
     } catch {
       /* keep what we have; the next poll retries */
@@ -50,6 +51,24 @@ export default function NotificationBell({ email }) {
   }, [load]);
 
   useEffect(() => {
+    if (!email || !('Notification' in window) || Notification.permission !== 'granted') return undefined;
+    let unsubscribe;
+    z8.notifications.onForeground(() => load()).then((stop) => { unsubscribe = stop; });
+    z8.notifications.registerIfAllowed().catch(() => undefined);
+    return () => unsubscribe?.();
+  }, [email, load]);
+
+  const enablePush = async () => {
+    setPushStatus("");
+    try {
+      const result = await z8.notifications.enableWebPush();
+      setPushStatus(result.registered ? "Browser alerts are enabled." : result.reason === 'denied' ? "Allow notifications in your browser settings to enable alerts." : "Browser alerts are unavailable on this device.");
+    } catch {
+      setPushStatus("Browser alerts could not be enabled. Please try again.");
+    }
+  };
+
+  useEffect(() => {
     if (!open) return undefined;
     const onDown = (event) => { if (wrap.current && !wrap.current.contains(event.target)) setOpen(false); };
     const onKey = (event) => { if (event.key === "Escape") setOpen(false); };
@@ -64,7 +83,7 @@ export default function NotificationBell({ email }) {
     if (!ids.length) return;
     const now = new Date().toISOString();
     setItems((current) => current.map((item) => (ids.includes(item.id) ? { ...item, read: true, read_at: now } : item)));
-    await Promise.all(ids.map((id) => base44.entities.Notification.update(id, { read: true, read_at: now }).catch(() => null)));
+    await Promise.all(ids.map((id) => z8.entities.Notification.update(id, { read: true, read_at: now }).catch(() => null)));
   };
 
   const openItem = async (item) => {
@@ -105,12 +124,18 @@ export default function NotificationBell({ email }) {
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="font-display text-base">Notifications</h2>
-            {unread > 0 && (
+            <div className="flex items-center gap-2">
+              {('Notification' in window) && Notification.permission !== 'granted' && (
+                <button type="button" data-compact onClick={enablePush} className="min-h-9 rounded-lg px-2 text-xs font-medium text-primary hover:bg-secondary">Enable alerts</button>
+              )}
+              {unread > 0 && (
               <button type="button" data-compact onClick={markAll} disabled={marking} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-secondary disabled:opacity-60">
                 {marking ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />} Mark all as read
               </button>
             )}
+            </div>
           </div>
+          {pushStatus && <p role="status" className="border-b border-border px-4 py-2 text-xs text-muted-foreground">{pushStatus}</p>}
           <div className="min-h-0 flex-1 overflow-y-auto">
             {loading && !items.length ? (
               <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading…</div>

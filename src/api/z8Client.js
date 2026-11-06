@@ -5,7 +5,7 @@
   signOut,
 } from 'firebase/auth';
 import { deleteToken, getMessaging, getToken, isSupported, onMessage } from 'firebase/messaging';
-import { firebaseApp, firebaseAuth } from './firebase';
+import { authPersistenceReady, firebaseApp, firebaseAuth } from './firebase';
 
 const API_BASE = String(import.meta.env.VITE_Z8_API_URL || 'http://localhost:3001/v1').replace(/\/+$/, '');
 
@@ -25,6 +25,7 @@ export class Z8ApiError extends Error {
 
 /** @param {string} path @param {RequestOptions} [options] @returns {Promise<any>} */
 async function request(path, { method = 'GET', body, authenticated = true, headers = {} } = {}) {
+  await authPersistenceReady;
   const requestHeaders = new Headers(headers);
   if (body !== undefined && !(body instanceof FormData)) requestHeaders.set('Content-Type', 'application/json');
   if (authenticated && firebaseAuth?.currentUser) {
@@ -55,6 +56,7 @@ async function request(path, { method = 'GET', body, authenticated = true, heade
 
 /** @param {any} result @returns {Promise<any>} */
 async function adoptSession(result) {
+  await authPersistenceReady;
   if (!result?.firebaseCustomToken || !firebaseAuth) throw new Z8ApiError('Sign-in could not be completed.', { code: 'invalid_session' });
   await signInWithCustomToken(firebaseAuth, result.firebaseCustomToken);
   return request('/me');
@@ -133,6 +135,7 @@ export const z8 = {
     },
     loginWithProvider: async (provider) => {
       if (provider !== 'google' || !firebaseAuth) throw new Z8ApiError('Google sign-in is not configured.', { code: 'google_not_configured' });
+      await authPersistenceReady;
       try {
         let credential;
         try {

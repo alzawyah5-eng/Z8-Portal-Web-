@@ -5,7 +5,8 @@ const MAX_STACK = 20;
 // Tab identity -> the routes that belong to it. Detail screens keep their tab.
 const TABS = [
   { root: "/", matches: (path) => path === "/" || path === "/admin" },
-  { root: "/cards", matches: (path) => path.startsWith("/cards") || path.startsWith("/account") },
+  { root: "/cards", matches: (path) => path.startsWith("/cards") },
+  { root: "/account", matches: (path) => path.startsWith("/account") },
   { root: "/cardholders", matches: (path) => path.startsWith("/cardholders") },
   { root: "/activity", matches: (path) => path.startsWith("/activity") },
   { root: "/admin/funds", matches: (path) => path.startsWith("/admin/funds") },

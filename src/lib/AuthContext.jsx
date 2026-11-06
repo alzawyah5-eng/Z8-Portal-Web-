@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { firebaseAuth, firebaseConfigured } from '@/api/firebase';
+import { authPersistenceReady, firebaseAuth, firebaseConfigured } from '@/api/firebase';
 import { z8 } from '@/api/z8Client';
 
 const AuthContext = createContext(null);
@@ -47,17 +47,28 @@ export const AuthProvider = ({ children }) => {
       setAuthChecked(true);
       return undefined;
     }
-    return onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
-      if (!firebaseUser) {
-        setUser(null);
-        setIsAuthenticated(false);
-        setAuthError(null);
-        setIsLoadingAuth(false);
-        setAuthChecked(true);
-        return;
-      }
-      await checkUserAuth();
+    let active = true;
+    let unsubscribe;
+    authPersistenceReady.then(() => {
+      if (!active) return;
+      unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
+        if (!firebaseUser) {
+          setUser(null);
+          setIsAuthenticated(false);
+          setAuthError(null);
+          setIsLoadingAuth(false);
+          setAuthChecked(true);
+          return;
+        }
+        await checkUserAuth();
+      });
+    }).catch(() => {
+      if (!active) return;
+      setAuthError({ type: 'unknown', message: 'Your sign-in session could not be restored. Please sign in again.' });
+      setIsLoadingAuth(false);
+      setAuthChecked(true);
     });
+    return () => { active = false; unsubscribe?.(); };
   }, [checkUserAuth]);
 
   const logout = async (shouldRedirect = true) => {

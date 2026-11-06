@@ -11,17 +11,21 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       await z8.auth.resetPasswordRequest(email);
-    } catch {
-      // Always show success regardless
+      setSent(true);
+    } catch (err) {
+      // Preserve the generic success for account lookup, but don't report a
+      // delivery outage as a successful request.
+      setError(err?.response?.data?.message || err?.message || "Password reset email is temporarily unavailable. Please try again later.");
     } finally {
       setLoading(false);
-      setSent(true);
     }
   };
 
@@ -38,10 +42,11 @@ export default function ForgotPassword() {
     >
       {sent ? (
         <p className="text-sm text-foreground text-center">
-          If an account exists with that email, you'll receive a password reset link shortly.
+          If an account exists with that email, you'll receive a password reset link shortly. Check your inbox and spam folder.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p role="alert" className="rounded-xl border border-destructive/25 px-3 py-2 text-sm text-destructive">{error}</p>}
           <div className="space-y-2">
             <Label htmlFor="email">Email address</Label>
             <div className="relative">

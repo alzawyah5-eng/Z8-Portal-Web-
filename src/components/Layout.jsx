@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, BadgeCheck, Bot, ChevronLeft, ChevronRight, CreditCard, LayoutGrid, LifeBuoy, Loader2, LogOut, Plus, ReceiptText, Settings2, Sparkles, Users, Wallet } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Bot, ChevronLeft, ChevronRight, CreditCard, LayoutGrid, LifeBuoy, Loader2, LogOut, Menu, Plus, ReceiptText, Settings2, Sparkles, Users, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/AuthContext";
+import { firebaseAuth } from "@/api/firebase";
 import { initials } from "@/lib/format";
 import { requestScrollRestore, tabFor } from "@/lib/tabStack";
 import { useTabStack } from "@/lib/TabStackContext";
@@ -12,6 +14,7 @@ import VerifyPrompt from "@/components/VerifyPrompt";
 import NotificationBell from "@/components/NotificationBell";
 import PageTransition from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const NAV = [
   { to: "/", root: "/", label: "Overview", short: "Home", icon: LayoutGrid, end: true },
@@ -33,7 +36,13 @@ function MobileNav({ items }) {
   const navigate = useNavigate();
   const { topFor, resetTab } = useTabStack();
   const activeRoot = tabFor(pathname);
-  const tabs = items.filter((item) => !item.desktopOnly);
+  const admin = items.some((item) => item.to === "/cardholders");
+  const primaryRoutes = admin
+    ? ["/admin", "/cards", "/cardholders", "/admin/funds"]
+    : ["/", "/cards", "/activity", "/account"];
+  const tabs = primaryRoutes.map((route) => items.find((item) => item.to === route) || (
+    route === "/account" ? { to: "/account", root: "/account", label: "Your account", short: "Account", icon: Wallet } : null
+  )).filter(Boolean);
 
   return (
     <nav aria-label="Main navigation" className="fixed inset-x-0 bottom-0 z-40 rounded-t-[22px] border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_-16px_rgba(50,30,50,0.25)] backdrop-blur md:hidden">
@@ -74,6 +83,8 @@ function MobileNav({ items }) {
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -85,7 +96,16 @@ export default function Layout() {
     : NAV.filter((item) => !["/cardholders", "/admin/funds", "/admin/connections", "/admin/support"].includes(item.to))).map((item) => item.to === "/" && admin ? { ...item, to: "/admin" } : item);
   const current = items.find((item) => item.end ? pathname === item.to : pathname.startsWith(item.to))
     || (pathname.startsWith("/verification") ? { label: "Identity verification" } : pathname.startsWith("/account") ? { label: "Your account" } : null);
-  const name = user?.full_name || "Your account";
+  const name = user?.full_name?.trim()
+    || firebaseAuth?.currentUser?.displayName?.trim()
+    || user?.email?.split("@")[0]
+    || "Your account";
+  const confirmLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try { await logout(); }
+    finally { setLoggingOut(false); setLogoutDialogOpen(false); }
+  };
 
   // Mobile header shows a native-style back control on any screen below a tab root.
   const activeRoot = tabFor(pathname);
@@ -125,7 +145,7 @@ export default function Layout() {
               <div className="truncate text-[13px] font-semibold">{name}</div>
               <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{user?.email || "Card workspace"}</div>
             </div>
-            <button type="button" onClick={() => logout()} aria-label="Sign out" title="Sign out" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"><LogOut className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setLogoutDialogOpen(true)} aria-label="Sign out" title="Sign out" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"><LogOut className="h-4 w-4" /></button>
           </div>
           {!admin && (
             <div className="mt-3 space-y-0.5">
@@ -180,21 +200,22 @@ export default function Layout() {
               {admin && <Button asChild size="sm" className="h-11 rounded-xl sm:h-10"><Link to="/cards?new=1"><Plus className="h-4 w-4" aria-hidden="true" /> New card</Link></Button>}
               {!admin && user?.email && <NotificationBell email={user.email} />}
               <details className="relative md:hidden">
-                <summary aria-label="Your account" className="flex h-12 w-12 cursor-pointer list-none items-center justify-center rounded-2xl bg-accent text-xs font-semibold text-accent-foreground [&::-webkit-details-marker]:hidden">{initials(user?.full_name || user?.email) || "Z8"}</summary>
-                <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-border bg-card p-4 shadow-xl">
-                  <p className="truncate text-sm font-semibold">{name}</p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">{user?.email}</p>
-                  {!admin && (
-                    <>
-                      <Link to="/account" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} className="mt-3 flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm hover:bg-secondary">
-                        <Wallet className="h-4 w-4" aria-hidden="true" /> Your account
-                      </Link>
-                      <Link to="/verification" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm hover:bg-secondary">
-                        <BadgeCheck className="h-4 w-4" aria-hidden="true" /> Identity verification
-                      </Link>
-                    </>
-                  )}
-                  <button type="button" onClick={() => logout()} className="mt-1 flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm hover:bg-secondary"><LogOut className="h-4 w-4" aria-hidden="true" /> Sign out</button>
+                <summary aria-label="Open navigation menu" title="Menu" className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-secondary [&::-webkit-details-marker]:hidden"><Menu className="h-5 w-5" aria-hidden="true" /></summary>
+                <div className="absolute right-0 mt-3 max-h-[min(78vh,620px)] w-[min(19rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border bg-card p-3 shadow-xl">
+                  <div className="flex items-center gap-3 border-b border-border px-2 pb-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-xs font-semibold text-accent-foreground">{initials(user?.full_name || user?.email) || "Z8"}</span>
+                    <div className="min-w-0"><p className="truncate text-sm font-semibold">{name}</p><p className="mt-0.5 truncate text-xs text-muted-foreground">{user?.email}</p></div>
+                  </div>
+                  <nav aria-label="Mobile menu" className="space-y-1 py-2">
+                    {items.map(({ icon: Icon, ...item }) => <Link key={item.to} to={item.to} onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors", current?.label === item.label ? "bg-secondary font-medium text-primary" : "text-foreground hover:bg-secondary")}><Icon className="h-4 w-4" aria-hidden="true" />{item.label}</Link>)}
+                    {!admin && <>
+                      <Link to="/account" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-foreground hover:bg-secondary"><Wallet className="h-4 w-4" aria-hidden="true" />Your account</Link>
+                      <Link to="/verification" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-foreground hover:bg-secondary"><BadgeCheck className="h-4 w-4" aria-hidden="true" />Identity verification</Link>
+                    </>}
+                  </nav>
+                  <div className="border-t border-border pt-2">
+                    <button type="button" onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); setLogoutDialogOpen(true); }} className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm text-foreground hover:bg-secondary"><LogOut className="h-4 w-4" aria-hidden="true" />Sign out</button>
+                  </div>
                 </div>
               </details>
             </div>
@@ -209,6 +230,18 @@ export default function Layout() {
       </div>
       <MobileNav items={items} />
       <VerifyPrompt />
+      <Dialog open={logoutDialogOpen} onOpenChange={(open) => { if (!loggingOut) setLogoutDialogOpen(open); }}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Sign out of Z8?</DialogTitle>
+            <DialogDescription>Your session will end on this device. You can sign in again at any time.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button type="button" variant="outline" disabled={loggingOut} onClick={() => setLogoutDialogOpen(false)}>Stay signed in</Button>
+            <Button type="button" variant="destructive" disabled={loggingOut} onClick={confirmLogout}>{loggingOut ? "Signing out…" : "Sign out"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

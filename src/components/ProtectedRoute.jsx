@@ -31,7 +31,7 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     }
-    return signInFallback;
+    if (!isAuthenticated) return signInFallback;
   }
 
   if (!isAuthenticated) {

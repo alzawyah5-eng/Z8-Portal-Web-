@@ -82,7 +82,7 @@ function MobileNav({ items }) {
 }
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user, logout, authError, checkUserAuth } = useAuth();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const { pathname } = useLocation();
@@ -225,6 +225,12 @@ export default function Layout() {
           id="main-content"
           className="mx-auto w-full max-w-[1400px] pb-28 pl-[max(env(safe-area-inset-left),1rem)] pr-[max(env(safe-area-inset-right),1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] [overscroll-behavior-y:none] sm:pl-7 sm:pr-7 md:pb-12 lg:pl-10 lg:pr-10 lg:pt-9"
         >
+          {authError?.type === "temporarily_unavailable" && (
+            <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              <span>{authError.message}</span>
+              <button type="button" onClick={checkUserAuth} className="min-h-10 rounded-lg px-3 font-semibold underline underline-offset-2">Retry connection</button>
+            </div>
+          )}
           <PageTransition />
         </main>
       </div>

@@ -2,6 +2,7 @@
 // converted, large photos shrunk) or a PDF up to 6 MB.
 import { z8 } from "@/api/z8Client";
 import { prepareIdPhoto, readBase64 } from "@/lib/idPhoto";
+import { openPrivateFile } from "@/lib/openPrivateFile";
 
 export const MAX_PROOF_BYTES = 6 * 1024 * 1024;
 
@@ -39,13 +40,12 @@ export async function uploadProof(file) {
 
 // Opens a proof through a short-lived link. The tab is opened first so phone
 // browsers don't block it as a pop-up.
-export async function openProof(entryId, { admin = false } = {}) {
+export async function openProof(entryId) {
   const tab = window.open("", "_blank");
   try {
-    const response = await z8.functions.invoke("photonpayCards", { action: admin ? "deposit_proof" : "my_deposit_proof", payload: { entryId } });
+    const response = await z8.functions.invoke("photonpayCards", { action: "deposit_proof", payload: { entryId } });
     if (response.data?.error || !response.data?.url) throw new Error(response.data?.error || "The proof could not be opened.");
-    if (tab) tab.location.href = response.data.url;
-    else window.location.assign(response.data.url);
+    await openPrivateFile(response.data.url, tab);
   } catch (error) {
     if (tab) tab.close();
     throw error;

@@ -24,25 +24,41 @@ function timeAgo(value) {
 export default function NotificationBell({ email, admin = false }) {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
+  const [itemsOwnerEmail, setItemsOwnerEmail] = useState(email || "");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [marking, setMarking] = useState(false);
   const [pushStatus, setPushStatus] = useState("");
   const wrap = useRef(null);
+  const emailRef = useRef(email || "");
+  emailRef.current = email || "";
 
   const load = useCallback(async () => {
-    if (!email) return;
+    if (!email) {
+      if (!emailRef.current) {
+        setItems([]);
+        setItemsOwnerEmail("");
+        setLoading(false);
+      }
+      return;
+    }
     try {
       const page = await z8.entities.Notification.filter({}, { sort: "-created_date", limit: 30 });
-      setItems(Array.isArray(page) ? page : page?.items || []);
+      if (emailRef.current.toLowerCase() === email.toLowerCase()) {
+        setItems(Array.isArray(page) ? page : page?.items || []);
+        setItemsOwnerEmail(email);
+      }
     } catch {
       /* keep what we have; the next poll retries */
     } finally {
-      setLoading(false);
+      if (emailRef.current.toLowerCase() === email.toLowerCase()) setLoading(false);
     }
   }, [email]);
 
   useEffect(() => {
+    setItems([]);
+    setItemsOwnerEmail(email || "");
+    setLoading(Boolean(email));
     load();
     const timer = setInterval(load, POLL_MS);
     const onFocus = () => { if (document.visibilityState === "visible") load(); };
@@ -54,7 +70,13 @@ export default function NotificationBell({ email, admin = false }) {
   useEffect(() => {
     if (!email || !('Notification' in window) || Notification.permission !== 'granted') return undefined;
     let unsubscribe;
-    z8.notifications.onForeground(() => load()).then((stop) => { unsubscribe = stop; });
+    z8.notifications.onForeground((payload) => {
+      load();
+      // FCM does not display notification payloads automatically while the
+      // page is open. Show the browser's native notification banner as well
+      // as refreshing the in-app unread count.
+      void z8.notifications.showForegroundNotification(payload);
+    }).then((stop) => { unsubscribe = stop; });
     z8.notifications.registerIfAllowed().catch(() => undefined);
     return () => unsubscribe?.();
   }, [email, load]);
@@ -78,7 +100,9 @@ export default function NotificationBell({ email, admin = false }) {
     return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
   }, [open]);
 
-  const unread = items.filter((item) => !item.read).length;
+  const visibleItems = itemsOwnerEmail.toLowerCase() === String(email || "").toLowerCase() ? items : [];
+  const identityLoading = loading || itemsOwnerEmail.toLowerCase() !== String(email || "").toLowerCase();
+  const unread = visibleItems.filter((item) => !item.read).length;
 
   const markRead = async (ids) => {
     if (!ids.length) return;
@@ -105,7 +129,7 @@ export default function NotificationBell({ email, admin = false }) {
 
   const markAll = async () => {
     setMarking(true);
-    await markRead(items.filter((item) => !item.read).map((item) => item.id));
+    await markRead(visibleItems.filter((item) => !item.read).map((item) => item.id));
     setMarking(false);
   };
 
@@ -148,9 +172,9 @@ export default function NotificationBell({ email, admin = false }) {
           </div>
           {pushStatus && <p role="status" className="border-b border-border px-4 py-2 text-xs text-muted-foreground">{pushStatus}</p>}
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {loading && !items.length ? (
+            {identityLoading && !visibleItems.length ? (
               <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading…</div>
-            ) : !items.length ? (
+            ) : !visibleItems.length ? (
               <div className="px-6 py-12 text-center">
                 <Bell className="mx-auto h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
                 <p className="mt-3 text-sm font-medium">No notifications yet</p>
@@ -158,7 +182,7 @@ export default function NotificationBell({ email, admin = false }) {
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {items.map((item) => {
+                {visibleItems.map((item) => {
                   const Icon = item.tone === "warning" ? AlertTriangle : KIND_ICONS[item.kind] || Bell;
                   return (
                     <li key={item.id}>

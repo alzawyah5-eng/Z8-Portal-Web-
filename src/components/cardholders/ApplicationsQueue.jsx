@@ -4,6 +4,7 @@ import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime } from "@/lib/format";
+import { openPrivateFile } from "@/lib/openPrivateFile";
 
 const ID_LABEL = { passport: "Passport", id_card: "National ID", resident_permit: "Residence permit" };
 
@@ -52,7 +53,10 @@ export default function ApplicationsQueue({ onApproved }) {
     // the short-lived link.
     const tab = window.open("about:blank", "_blank");
     const data = await call(app, "application_photo", { side });
-    if (data?.url && tab) { tab.opener = null; tab.location.href = data.url; } else tab?.close();
+    if (data?.url) {
+      try { await openPrivateFile(data.url, tab); }
+      catch (error) { setErrors((current) => ({ ...current, [app.id]: error.message })); }
+    } else tab?.close();
   };
 
   const approve = async (app) => {

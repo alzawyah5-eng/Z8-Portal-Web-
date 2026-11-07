@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDownLeft, ArrowLeft, Paperclip, Plus } from "lucide-react";
-import { openProof } from "@/lib/proofFile";
+import { ArrowDownLeft, ArrowLeft, Plus } from "lucide-react";
 import { tierInfo } from "@/lib/tiers";
 import { Button } from "@/components/ui/button";
 import StatusPill from "@/components/StatusPill";
@@ -57,7 +56,6 @@ export default function Account() {
   const account = useClientAccount();
   const { loading, error, wallet, verified, min, reload } = account;
   const [funding, setFunding] = useState(false);
-  const [proofError, setProofError] = useState("");
   const entries = wallet?.entries || [];
 
   return (
@@ -97,7 +95,6 @@ export default function Account() {
 
           <section className="surface overflow-hidden" aria-labelledby="movements-title">
             <h2 id="movements-title" className="border-b border-border px-5 py-4 font-display text-lg">Movements</h2>
-            {proofError && <p role="alert" className="border-b border-border px-5 py-2 text-xs text-destructive">{proofError}</p>}
             {entries.length ? (
               <ul className="divide-y divide-border">
                 {entries.map((entry) => {
@@ -114,11 +111,7 @@ export default function Account() {
                           {entry.status !== "completed" && <StatusPill status={state.status} label={state.label} />}
                         </div>
                         <p className="mt-0.5 break-words text-xs text-muted-foreground">{[entryDate(entry.date), entry.reference, entry.note].filter(Boolean).join(" · ")}</p>
-                        {entry.has_proof && (
-                          <button type="button" data-compact onClick={() => openProof(entry.id).catch((err) => setProofError(err.message))} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-                            <Paperclip className="h-3 w-3" aria-hidden="true" /> View proof
-                          </button>
-                        )}
+                        {entry.has_proof && <p className="mt-1 text-xs text-muted-foreground">Payment proof submitted for administrator review.</p>}
                       </div>
                       <span className={cn("num shrink-0 text-sm font-semibold", entry.status !== "completed" ? "text-muted-foreground" : positive && "text-emerald-700 dark:text-emerald-400")}>{signedUsd(entry.amount)}</span>
                     </li>

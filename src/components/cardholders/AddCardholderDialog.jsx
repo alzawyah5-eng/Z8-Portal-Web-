@@ -324,6 +324,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
                     key={label}
                     photo={photo}
                     label={label}
+                    className="sm:col-span-2"
                     hint={self ? "JPG or PNG, clear and uncropped. Stored privately; only administrators can view it." : "JPG or PNG, clear and uncropped. Sent only to PhotonPay."}
                     onChange={pickPhoto(setter)}
                     onRemove={() => setter(null)}
@@ -344,11 +345,11 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
 
               {error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-3 text-sm text-destructive"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>{error}</span></div>}
             </div>
-            <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-border bg-background px-5 py-3.5 sm:px-6 sm:py-4">
-              <span className="text-xs text-muted-foreground" role="status">{busy}</span>
-              <div className="flex gap-2">
-                <Button type="button" variant="ghost" onClick={() => close(false)} disabled={Boolean(busy)}>Cancel</Button>
-                <Button type="submit" disabled={Boolean(busy)}>{busy && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}{busy ? "Please wait…" : (self ? "Submit for review" : "Register with PhotonPay")}</Button>
+            <div className="border-t border-border bg-background px-5 py-3.5 sm:px-6 sm:py-4">
+              {busy && <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground" role="status"><Loader2 className="h-3.5 w-3.5 animate-spin" />{busy}</div>}
+              <div className="grid grid-cols-2 gap-3">
+                <Button type="button" variant="outline" className="w-full" onClick={() => close(false)} disabled={Boolean(busy)}>Cancel</Button>
+                <Button type="submit" className="w-full" disabled={Boolean(busy)}>{busy ? "Please wait…" : (self ? "Submit for review" : "Register with PhotonPay")}</Button>
               </div>
             </div>
           </form>
@@ -356,7 +357,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
   }
 }
 
-function IdPhotoPicker({ photo, label, hint, onChange, onRemove, disabled }) {
+function IdPhotoPicker({ photo, label, hint, className, onChange, onRemove, disabled }) {
   const [open, setOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const cameraRef = React.useRef(null);
@@ -376,7 +377,7 @@ function IdPhotoPicker({ photo, label, hint, onChange, onRemove, disabled }) {
   };
 
   return (
-    <Field label={label} hint={hint}>
+    <Field label={label} hint={hint} className={className}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button type="button" variant="outline" disabled={disabled} className="w-full justify-start gap-2 rounded-xl border-dashed font-normal">

@@ -56,7 +56,7 @@ function PendingDeposit({ entry, onDone }) {
           <p className="mt-1 text-sm">Says they sent <span className="num font-semibold">{usd(entry.amount)}</span> by {methodLabel(entry.method).toLowerCase() || "—"}</p>
           <p className="text-xs text-muted-foreground">{[entryDate(entry.date), entry.reference && `Ref ${entry.reference}`, entry.note && `“${entry.note}”`].filter(Boolean).join(" · ")}</p>
           {entry.has_proof ? (
-            <button type="button" data-compact onClick={() => openProof(entry.id, { admin: true }).catch((err) => setError(err.message))} className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium text-primary hover:bg-secondary">
+            <button type="button" data-compact onClick={() => openProof(entry.id).catch((err) => setError(err.message))} className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium text-primary hover:bg-secondary">
               <Paperclip className="h-3.5 w-3.5" aria-hidden="true" /> View proof{entry.proof_type === "application/pdf" ? " (PDF)" : " (photo)"}
             </button>
           ) : <p className="mt-1 text-xs text-muted-foreground">No proof attached.</p>}
@@ -219,7 +219,7 @@ function ClientLedger({ client, onClose, onChanged }) {
                           </p>
                           {entry.admin_note && <p className="mt-0.5 text-xs italic text-muted-foreground">Internal: {entry.admin_note}</p>}
                           {entry.has_proof && (
-                            <button type="button" data-compact onClick={() => openProof(entry.id, { admin: true }).catch((err) => setMessage(err.message))} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                            <button type="button" data-compact onClick={() => openProof(entry.id).catch((err) => setMessage(err.message))} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
                               <Paperclip className="h-3 w-3" aria-hidden="true" /> View proof
                             </button>
                           )}

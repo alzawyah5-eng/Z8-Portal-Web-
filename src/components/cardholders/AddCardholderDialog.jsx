@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, ImageUp, Loader2 } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, FolderOpen, ImageUp, Loader2 } from "lucide-react";
 import { z8 } from "@/api/z8Client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import Field from "@/components/forms/Field";
 import ResponsiveSelect from "@/components/forms/ResponsiveSelect";
 import CountrySelect from "@/components/forms/CountrySelect";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { dialFor } from "@/lib/countries";
 import { prepareIdPhoto, readBase64 } from "@/lib/idPhoto";
 
@@ -17,7 +18,7 @@ const EMPTY = {
   firstName: "", lastName: "", dateOfBirth: "", nationalityCountryCode: "",
   email: "", mobileCountry: "", mobilePrefix: "", mobile: "",
   residentialAddress: "", residentialCity: "", residentialState: "", residentialPostalCode: "", residentialCountryCode: "",
-  certType: "passport", certId: "", certCountryCode: "",
+  certType: "", certId: "", certCountryCode: "",
   deviceCountry: "",
 };
 
@@ -143,6 +144,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
     if (!self && !form.email.trim() && !form.mobile.trim()) { setError("Enter an email or a mobile number."); return; }
     if (!form.nationalityCountryCode || !form.residentialCountryCode || !form.certCountryCode) { setError("Choose the nationality, billing country and ID issuing country."); return; }
     if (!form.deviceCountry) { setError("Select the country you are in now."); return; }
+    if (!form.certType) { setError("Choose an ID document type before adding photos."); return; }
     if (!front) { setError(form.certType === "passport" ? "Add a photo of the passport photo page." : "Add a photo of the front of the ID."); return; }
     if (needsBack && !back) { setError("Add a photo of the back of the ID."); return; }
     try {
@@ -190,7 +192,15 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
 
   return (
     <Dialog open={open} onOpenChange={close}>
-      <DialogContent className="max-h-[92vh] max-w-2xl gap-0 overflow-hidden rounded-[24px] p-0">
+      <DialogContent
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          event.currentTarget.focus({ preventScroll: true });
+        }}
+        tabIndex={-1}
+        className="!flex max-h-[92dvh] max-w-2xl flex-col gap-0 overflow-hidden rounded-[24px] p-0"
+        style={{ display: "flex", flexDirection: "column", height: "auto", maxHeight: "92dvh" }}
+      >
         <div className="border-b border-border px-5 py-4 sm:px-6 sm:py-5">
           <DialogHeader>
             <DialogDescription className="label-eyebrow">{eyebrow}</DialogDescription>
@@ -235,8 +245,15 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
             </div>
           </div>
         ) : (
-          <form onSubmit={submit}>
-            <div className={isInline ? "space-y-6 px-5 py-5 sm:px-6" : "max-h-[60vh] space-y-6 overflow-y-auto px-5 py-5 sm:px-6"}>
+          <form
+            onSubmit={submit}
+            className={isInline ? undefined : "min-h-0 overflow-hidden"}
+            style={isInline ? undefined : { minHeight: 0, overflow: "hidden" }}
+          >
+            <div
+              className={isInline ? "space-y-6 px-5 py-5 sm:px-6" : "max-h-[60dvh] space-y-6 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"}
+              style={isInline ? undefined : { maxHeight: "calc(92dvh - 230px)", overflowY: "auto" }}
+            >
               <section className="grid gap-4 sm:grid-cols-2">
                 <h3 className="text-sm font-medium sm:col-span-2">Identity</h3>
                 <Field label="First name" hint="Letters and spaces only, as on the ID.">
@@ -292,28 +309,30 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
 
               <section className="grid gap-4 sm:grid-cols-2">
                 <h3 className="text-sm font-medium sm:col-span-2">ID document</h3>
-                <Field label="ID type">
+                <Field label="ID type" hint="Choose a document type to show the photo fields you need.">
                   <ResponsiveSelect value={form.certType} onValueChange={(v) => { setForm((c) => ({ ...c, certType: v })); if (v === "passport") setBack(null); }} options={ID_TYPES} placeholder="ID type" />
                 </Field>
                 <Field label="Issuing country">
                   <CountrySelect value={form.certCountryCode} onValueChange={pick("certCountryCode")} placeholder="Select country" />
                 </Field>
+                {form.certType && <>
                 <Field label="ID number" className="sm:col-span-2" hint={self ? "Kept only until your verification is reviewed; afterwards Z8 keeps just the last four characters." : "Sent to PhotonPay; Z8 keeps only the last four characters."}>
                   <Input value={form.certId} onChange={set("certId")} maxLength={64} required autoComplete="off" />
                 </Field>
                 {[[front, setFront, form.certType === "passport" ? "Passport photo page" : "Front of ID"], ...(needsBack ? [[back, setBack, "Back of ID"]] : [])].map(([photo, setter, label]) => (
-                  <Field key={label} label={label} hint={self ? "JPG or PNG, clear and uncropped. Stored privately; only administrators can view it." : "JPG or PNG, clear and uncropped. Sent only to PhotonPay."}>
-                    <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-sm hover:bg-secondary/50">
-                      <ImageUp className="h-4 w-4 shrink-0" aria-hidden="true" />
-                      <span className="truncate">{photo ? `${photo.name} · ${(photo.size / 1024).toFixed(0)} KB` : "Choose photo"}</span>
-                      <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={pickPhoto(setter)} />
-                    </label>
-                  </Field>
+                  <IdPhotoPicker
+                    key={label}
+                    photo={photo}
+                    label={label}
+                    hint={self ? "JPG or PNG, clear and uncropped. Stored privately; only administrators can view it." : "JPG or PNG, clear and uncropped. Sent only to PhotonPay."}
+                    onChange={pickPhoto(setter)}
+                    disabled={Boolean(busy)}
+                  />
                 ))}
+                </>}
               </section>
 
               <section className="grid gap-4 sm:grid-cols-2">
-                <h3 className="text-sm font-medium sm:col-span-2">Where you are now</h3>
                 <Field label="Country you are in now" className="sm:col-span-2" hint={self
                   ? "Where you and this device are right now. It is sent with your card application for fraud checks, so it must match your internet connection."
                   : "Where you and this device are right now. When this client's card is issued automatically, your device's connection and this country are sent with the application for fraud checks."}>
@@ -323,7 +342,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
 
               {error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-3 text-sm text-destructive"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>{error}</span></div>}
             </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-3.5 sm:px-6 sm:py-4">
+            <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-border bg-background px-5 py-3.5 sm:px-6 sm:py-4">
               <span className="text-xs text-muted-foreground" role="status">{busy}</span>
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" onClick={() => close(false)} disabled={Boolean(busy)}>Cancel</Button>
@@ -333,4 +352,38 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
           </form>
         );
   }
+}
+
+function IdPhotoPicker({ photo, label, hint, onChange, disabled }) {
+  const [open, setOpen] = useState(false);
+  const cameraRef = React.useRef(null);
+  const galleryRef = React.useRef(null);
+  const choose = (ref) => {
+    setOpen(false);
+    ref.current?.click();
+  };
+
+  return (
+    <Field label={label} hint={hint}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button type="button" variant="outline" disabled={disabled} className="w-full justify-start gap-2 rounded-xl border-dashed font-normal">
+            <ImageUp className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">{photo ? `${photo.name} · ${(photo.size / 1024).toFixed(0)} KB` : "Choose photo"}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-64 p-2">
+          <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Add {label.toLowerCase()}</p>
+          <Button type="button" variant="ghost" className="w-full justify-start gap-2" onClick={() => choose(cameraRef)}>
+            <Camera className="h-4 w-4" /> Take a photo
+          </Button>
+          <Button type="button" variant="ghost" className="w-full justify-start gap-2" onClick={() => choose(galleryRef)}>
+            <FolderOpen className="h-4 w-4" /> Choose from files
+          </Button>
+        </PopoverContent>
+      </Popover>
+      <input ref={cameraRef} type="file" accept="image/jpeg,image/png" capture="environment" className="sr-only" onChange={onChange} />
+      <input ref={galleryRef} type="file" accept="image/jpeg,image/png" className="sr-only" onChange={onChange} />
+    </Field>
+  );
 }

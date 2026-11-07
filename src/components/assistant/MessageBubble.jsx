@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Check, Copy, Sparkles } from "lucide-react";
 import Markdown from "@/components/assistant/Markdown";
 import ToolSteps from "@/components/assistant/ToolCall";
+import { formatDateTime } from "@/lib/format";
 
 function timeOf(message) {
   const value = message?.metadata?.created_date || message?.created_date;
   if (!value) return "";
-  const date = new Date(/Z|[+-]\d\d:?\d\d$/.test(value) ? value : `${value}Z`);
-  return Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return formatDateTime(value);
 }
 
 export function UserMessage({ message }) {

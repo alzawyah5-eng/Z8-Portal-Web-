@@ -1,23 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, LifeBuoy, Loader2, RefreshCw, Trash2, X } from "lucide-react";
+import { Check, LifeBuoy, Loader2, RefreshCw, X } from "lucide-react";
 import { z8 } from "@/api/z8Client";
-import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import StatusPill from "@/components/StatusPill";
 import ProgrammeDefaults from "@/components/settings/ProgrammeDefaults";
-import PushTestCard from "@/components/notifications/PushTestCard";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import DeleteAccountCard from "@/components/account/DeleteAccountCard";
+import { formatDateTime } from "@/lib/format";
 
 function Requirement({ label, detail, met }) {
   return (
@@ -41,7 +30,6 @@ function Requirement({ label, detail, met }) {
 
 
 export default function Settings() {
-  const { user } = useAuth();
   const [status, setStatus] = useState(null);
   const [balance, setBalance] = useState(null);
   const [busy, setBusy] = useState("");
@@ -86,19 +74,6 @@ export default function Settings() {
     } finally { setBusy(""); }
   };
 
-  const deleteAccount = async () => {
-    setBusy("delete");
-    setNotice("");
-    try {
-      const response = await z8.functions.invoke("deleteAccount", { confirm_email: user?.email });
-      if (response.data?.error) throw new Error(response.data.error);
-      await z8.auth.logout();
-    } catch (error) {
-      setNotice(error?.response?.data?.error || "We couldn't delete this account. Please try again or contact support.");
-      setBusy("");
-    }
-  };
-
   useEffect(() => {
     check();
   }, []);
@@ -124,8 +99,6 @@ export default function Settings() {
       {notice && (
         <div className="rounded-sm border border-border bg-secondary/60 px-4 py-2.5 text-[12px] text-muted-foreground">{notice}</div>
       )}
-
-      <PushTestCard />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="surface p-5">
@@ -294,7 +267,7 @@ export default function Settings() {
           ) : (
             <div>
               <div className="num font-display text-2xl">{Number(balance.available || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD</div>
-              <p className="mt-1 text-[11px] text-muted-foreground">{balance.environment === "sandbox" ? "Sandbox · " : ""}Account {balance.account || "—"}{balance.as_of ? " · as of " + balance.as_of : ""}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{balance.environment === "sandbox" ? "Sandbox · " : ""}Account {balance.account || "—"}{balance.as_of ? " · as of " + formatDateTime(balance.as_of) : ""}</p>
             </div>
           )}
         </div>
@@ -302,36 +275,7 @@ export default function Settings() {
 
       <ProgrammeDefaults />
 
-      <section className="surface border-destructive/25 p-5 sm:p-6">
-        <h2 className="font-display text-lg text-destructive">Delete account</h2>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Permanently delete your Z8 account. You are signed out immediately and can't sign back in with this address. Cards assigned to this account are released back to your administrator, and your card activity stays with the programme as an audit record. This can't be undone.
-        </p>
-        <div className="mt-5">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="border-destructive/40 text-destructive" disabled={Boolean(busy)}>
-                {busy === "delete" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Trash2 className="mr-1.5 h-4 w-4" />}
-                Delete my account
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete this account permanently?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Your Z8 login is removed right away and you will be signed out. Any card access linked to your email ends, and card activity records remain visible to administrators. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep my account</AlertDialogCancel>
-                <AlertDialogAction onClick={deleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Delete account
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </section>
+      <DeleteAccountCard />
     </div>
   );
 }

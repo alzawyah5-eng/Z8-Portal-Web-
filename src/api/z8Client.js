@@ -195,7 +195,7 @@ export const z8 = {
       }
     },
     logout: async (destination) => {
-      await removeBrowserPush();
+      await removeBrowserPush().catch(() => undefined);
       if (firebaseAuth) await signOut(firebaseAuth);
       if (destination) window.location.assign(destination);
     },
@@ -230,7 +230,7 @@ export const z8 = {
     registerIfAllowed: () => registerBrowserPush({ requestPermission: false }),
     showForegroundNotification: async (payload) => {
       if (!('Notification' in window) || Notification.permission !== 'granted') return false;
-      const title = payload?.notification?.title || 'Z8 Card Manager';
+      const title = payload?.notification?.title || 'Z8 Cards';
       const body = payload?.notification?.body || 'You have a new update.';
       const link = payload?.data?.link || '/';
       try {
@@ -248,26 +248,16 @@ export const z8 = {
         // can display the foreground message.
       }
       try {
-        new Notification(title, { body, icon: payload?.notification?.icon || '/favicon.ico' });
+        const alert = new Notification(title, { body, icon: payload?.notification?.icon || '/favicon.ico' });
+        alert.onclick = () => {
+          window.focus();
+          window.location.assign(link);
+          alert.close();
+        };
         return true;
       } catch {
         return false;
       }
-    },
-    sendTestPush: async () => {
-      const registration = await registerBrowserPush();
-      if (!registration.registered) {
-        const messages = {
-          denied: 'Allow notifications for this site in your browser settings, then try again.',
-          not_configured: 'Web push is not configured yet. Add the Firebase VAPID key to the web environment.',
-          unsupported: 'Push notifications are not supported by this browser.',
-          token_unavailable: 'This browser did not provide a push token. Check your connection and try again.',
-        };
-        throw new Z8ApiError(messages[registration.reason] || 'Browser notifications could not be enabled.', {
-          code: `push_${registration.reason || 'unavailable'}`,
-        });
-      }
-      return request('/me/notifications/test', { method: 'POST' });
     },
     onForeground: async (callback) => {
       const messaging = await getBrowserMessaging();

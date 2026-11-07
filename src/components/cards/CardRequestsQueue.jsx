@@ -7,6 +7,7 @@ import CountrySelect from "@/components/forms/CountrySelect";
 import Field from "@/components/forms/Field";
 import { purposeLabel } from "@/lib/cardPurposes";
 import { tierInfo } from "@/lib/tiers";
+import { formatDateTime } from "@/lib/format";
 
 const COUNTRY_KEY = "z8.adminDeviceCountry";
 
@@ -50,7 +51,7 @@ function RequestRow({ row, country, account, onDone }) {
           <p className="font-medium">{row.client_name || "Client"}</p>
           <p className="truncate text-xs text-muted-foreground">{row.owner_email}</p>
           <p className="mt-1 text-sm">Requested <span className="num font-semibold">{usd(row.amount)}</span>
-            <span className="text-muted-foreground">{row.requested_at ? ` · ${new Date(row.requested_at).toLocaleString()}` : ""}</span></p>
+            <span className="text-muted-foreground">{row.requested_at ? ` · ${formatDateTime(row.requested_at)}` : ""}</span></p>
           {(row.tier || row.purpose) && (
             <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
               {tierInfo(row.tier) && <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-white" style={{ background: tierInfo(row.tier).gradient }}>{tierInfo(row.tier).name}</span>}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AlertTriangle, BadgeCheck, Bell, CheckCheck, CreditCard, Loader2, Receipt, Wallet } from "lucide-react";
 import { z8 } from "@/api/z8Client";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format";
 
 const POLL_MS = 60_000;
 const KIND_ICONS = { verification: BadgeCheck, funds: Wallet, card_request: CreditCard, card: CreditCard, payment: Receipt };
@@ -16,11 +17,11 @@ function timeAgo(value) {
   if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`;
   if (seconds < 7 * 86400) return `${Math.floor(seconds / 86400)} d ago`;
-  return toDate(value).toLocaleDateString([], { day: "numeric", month: "short" });
+  return formatDateTime(value);
 }
 
 // The client's bell: unread count, the latest notifications, mark as read.
-export default function NotificationBell({ email }) {
+export default function NotificationBell({ email, admin = false }) {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
@@ -89,7 +90,17 @@ export default function NotificationBell({ email }) {
   const openItem = async (item) => {
     setOpen(false);
     if (!item.read) markRead([item.id]);
-    if (item.link) navigate(item.link);
+    const fallback = item.kind === "verification"
+      ? "/verification"
+      : item.kind === "funds"
+        ? (admin ? "/admin/funds" : "/account")
+        : item.kind === "card_request" || item.kind === "card"
+          ? "/cards"
+          : item.kind === "payment"
+            ? "/activity"
+            : (admin ? "/admin" : "/activity");
+    const target = typeof item.link === "string" && item.link.startsWith("/") ? item.link : fallback;
+    navigate(target);
   };
 
   const markAll = async () => {
@@ -143,7 +154,7 @@ export default function NotificationBell({ email }) {
               <div className="px-6 py-12 text-center">
                 <Bell className="mx-auto h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
                 <p className="mt-3 text-sm font-medium">No notifications yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">We'll let you know about your verification, deposits and cards here.</p>
+        <p className="mt-1 text-xs text-muted-foreground">{admin ? "Client requests, verification submissions and deposit reports will appear here." : "We'll let you know about your verification, deposits and cards here."}</p>
               </div>
             ) : (
               <ul className="divide-y divide-border">

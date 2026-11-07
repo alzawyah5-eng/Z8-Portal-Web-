@@ -6,6 +6,7 @@ import { AssistantTurn, TypingDots, UserMessage } from "@/components/assistant/M
 import AssistantComposer from "@/components/assistant/AssistantComposer";
 import { toolState } from "@/components/assistant/toolLabels";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format";
 
 const rowsOf = (page) => (Array.isArray(page) ? page : page?.items || []);
 // Platform times may come without a zone; they are UTC.
@@ -103,7 +104,10 @@ export default function AssistantChat({ profile }) {
       try {
         const page = await z8.agents.listConversations({ q: { agent_name: profile.agent }, sort: "-updated_date", limit: 20 });
         // Only this assistant's conversations, newest first.
-        const rows = rowsOf(page).filter((row) => row.agent_name === profile.agent).sort((a, b) => stamp(b) - stamp(a));
+        const rows = rowsOf(page)
+          .filter((row) => row.agent_name === profile.agent)
+          .filter((row) => (row.messages || []).some((message) => String(message.content || "").trim()))
+          .sort((a, b) => stamp(b) - stamp(a));
         if (!active) return;
         setConversations(rows);
         if (rows[0]) {
@@ -170,6 +174,10 @@ export default function AssistantChat({ profile }) {
   };
 
   const lastTurn = turns[turns.length - 1];
+  const historyConversations = conversations.filter((row) => {
+    const rowMessages = row.id === conversation?.id ? messages : row.messages || [];
+    return rowMessages.some((message) => String(message.content || "").trim());
+  });
   const title = (row) => row?.metadata?.title || row?.title || row?.metadata?.name || "Conversation";
 
   return (
@@ -181,7 +189,7 @@ export default function AssistantChat({ profile }) {
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{profile.intro}</p>
         </div>
         <div className="relative flex shrink-0 gap-2">
-          {conversations.length > 1 && (
+          {historyConversations.length > 1 && (
             <Button type="button" variant="outline" size="sm" className="h-10" onClick={() => setHistoryOpen((value) => !value)} aria-expanded={historyOpen}>
               <History className="h-4 w-4" aria-hidden="true" /> History
             </Button>
@@ -193,7 +201,7 @@ export default function AssistantChat({ profile }) {
             <div className="absolute right-0 top-12 z-20 w-72 rounded-2xl border border-border bg-card p-1.5 shadow-xl">
               <p className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Recent conversations</p>
               <ul className="max-h-72 overflow-y-auto">
-                {conversations.map((row) => (
+                {historyConversations.map((row) => (
                   <li key={row.id}>
                     <button
                       type="button"
@@ -201,7 +209,7 @@ export default function AssistantChat({ profile }) {
                       className={cn("flex w-full flex-col rounded-xl px-2.5 py-2 text-left text-sm hover:bg-muted", row.id === conversation?.id && "bg-secondary text-primary")}
                     >
                       <span className="truncate font-medium">{title(row)}</span>
-                      <span className="text-[11px] text-muted-foreground">{stamp(row) ? new Date(stamp(row)).toLocaleString() : ""}</span>
+                      <span className="text-[11px] text-muted-foreground">{stamp(row) ? formatDateTime(stamp(row)) : ""}</span>
                     </button>
                   </li>
                 ))}

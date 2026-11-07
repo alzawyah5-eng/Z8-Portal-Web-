@@ -9,10 +9,11 @@ import StatusPill from "@/components/StatusPill";
 import { COUNTRIES } from "@/lib/countries";
 import { CARDUSER_STATUS, ID_TYPES, REVIEW_STATUS, cardUserStatus, needsAction, reviewStatus } from "@/lib/cardholderStatus";
 import { cardTypeLabel } from "@/lib/cardTypes";
+import { formatDateTime } from "@/lib/format";
 
 const COUNTRY = Object.fromEntries((COUNTRIES || []).map((c) => [c.code, c.name]));
 const countryName = (code) => (code ? `${COUNTRY[code] || code}` : "—");
-const date = (value) => (value ? String(value).replace("T", " ").slice(0, 16) : "—");
+const date = (value) => formatDateTime(value);
 
 const STATUS_OPTIONS = [{ value: "all", label: "All statuses" }, ...Object.entries(CARDUSER_STATUS).filter(([k]) => k !== "rejected").map(([value, s]) => ({ value, label: s.label }))];
 const REVIEW_OPTIONS = [{ value: "all", label: "All review statuses" }, ...Object.entries(REVIEW_STATUS).map(([value, s]) => ({ value, label: s.label }))];

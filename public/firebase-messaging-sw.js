@@ -8,7 +8,7 @@ if (config.apiKey && config.projectId && config.appId) {
   firebase.initializeApp(config);
   const messaging = firebase.messaging();
   messaging.onBackgroundMessage((payload) => {
-    const title = payload.notification?.title || 'Z8 Card Manager';
+    const title = payload.notification?.title || 'Z8 Cards';
     const link = payload.fcmOptions?.link || payload.data?.link || '/';
     self.registration.showNotification(title, {
       body: payload.notification?.body || '',

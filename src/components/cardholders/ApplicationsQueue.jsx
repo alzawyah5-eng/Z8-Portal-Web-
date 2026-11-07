@@ -3,6 +3,7 @@ import { Check, Eye, Loader2, X } from "lucide-react";
 import { z8 } from "@/api/z8Client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDateTime } from "@/lib/format";
 
 const ID_LABEL = { passport: "Passport", id_card: "National ID", resident_permit: "Residence permit" };
 
@@ -77,7 +78,7 @@ export default function ApplicationsQueue({ onApproved }) {
           <div key={app.id} className="space-y-4 px-5 py-5">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
               <div className="text-sm font-medium">{app.first_name} {app.last_name}</div>
-              <div className="text-xs text-muted-foreground">{app.owner_email} · submitted {app.submitted_at ? new Date(app.submitted_at).toLocaleString() : ""}</div>
+              <div className="text-xs text-muted-foreground">{app.owner_email} · submitted {formatDateTime(app.submitted_at)}</div>
             </div>
             <div className="grid gap-x-8 sm:grid-cols-2">
               <div>

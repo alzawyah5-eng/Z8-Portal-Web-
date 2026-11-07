@@ -5,6 +5,7 @@ import { z8 } from "@/api/z8Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import AddCardholderDialog from "@/components/cardholders/AddCardholderDialog";
+import { formatDateTime } from "@/lib/format";
 
 // A client's own identity verification. The application waits for an
 // administrator; only an approved application is sent to PhotonPay.
@@ -66,7 +67,7 @@ export default function Verification() {
               <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
               <div>
                 <h2 className="font-display text-lg">Waiting for review</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Submitted {application.submitted_at ? new Date(application.submitted_at).toLocaleString() : ""} for {application.full_name}. An administrator will review it.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Submitted {formatDateTime(application.submitted_at)} for {application.full_name}. An administrator will review it.</p>
               </div>
             </div>
           )}

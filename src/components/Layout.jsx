@@ -120,7 +120,7 @@ export default function Layout() {
     <div className="min-h-screen bg-background">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-card focus:px-5 focus:py-3">Skip to content</a>
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] flex-col border-r border-border bg-card md:flex">
-        <Link to="/" aria-label="Z8 Cards home" className="mx-6 mb-10 mt-8 w-fit"><Brand /></Link>
+        <Link to="/" aria-label={admin ? "Z8 Card Manager home" : "Z8 Cards home"} className="mx-6 mb-10 mt-8 w-fit"><Brand audience={admin ? "admin" : "user"} /></Link>
         <p className="mb-3 px-7 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{admin ? "Admin workspace" : "Your workspace"}</p>
         <nav aria-label="Main navigation" className="space-y-1.5 px-4">
           {items.map(({ icon: Icon, ...item }) => (
@@ -198,7 +198,7 @@ export default function Layout() {
             <div className="flex items-center gap-2 sm:gap-4">
               <span className={cn("rounded-full bg-secondary px-3 py-1.5 text-[11px] font-semibold text-primary", !admin && "hidden sm:inline-flex")}>{admin ? "Admin" : "Personal account"}</span>
               {admin && <Button asChild size="sm" className="h-11 rounded-xl sm:h-10"><Link to="/cards?new=1"><Plus className="h-4 w-4" aria-hidden="true" /> New card</Link></Button>}
-              {!admin && user?.email && <NotificationBell email={user.email} />}
+              {user?.email && <NotificationBell email={user.email} admin={admin} />}
               <details className="relative md:hidden">
                 <summary aria-label="Open navigation menu" title="Menu" className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-secondary [&::-webkit-details-marker]:hidden"><Menu className="h-5 w-5" aria-hidden="true" /></summary>
                 <div className="absolute right-0 mt-3 max-h-[min(78vh,620px)] w-[min(19rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border bg-card p-3 shadow-xl">

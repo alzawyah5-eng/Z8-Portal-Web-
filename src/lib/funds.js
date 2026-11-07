@@ -37,5 +37,7 @@ export function signedUsd(value) {
 export function entryDate(value) {
   if (!value) return "";
   const date = new Date(/Z|[+-]\d\d:?\d\d$/.test(value) ? value : `${value}Z`);
-  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(date);
 }

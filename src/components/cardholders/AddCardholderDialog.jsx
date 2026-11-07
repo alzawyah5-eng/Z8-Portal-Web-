@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { AlertCircle, Camera, CheckCircle2, FolderOpen, ImageUp, Loader2 } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, FolderOpen, ImageUp, Loader2, X } from "lucide-react";
 import { z8 } from "@/api/z8Client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -326,6 +326,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
                     label={label}
                     hint={self ? "JPG or PNG, clear and uncropped. Stored privately; only administrators can view it." : "JPG or PNG, clear and uncropped. Sent only to PhotonPay."}
                     onChange={pickPhoto(setter)}
+                    onRemove={() => setter(null)}
                     disabled={Boolean(busy)}
                   />
                 ))}
@@ -333,6 +334,7 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
               </section>
 
               <section className="grid gap-4 sm:grid-cols-2">
+                <h3 className="text-sm font-medium sm:col-span-2">Where you are now</h3>
                 <Field label="Country you are in now" className="sm:col-span-2" hint={self
                   ? "Where you and this device are right now. It is sent with your card application for fraud checks, so it must match your internet connection."
                   : "Where you and this device are right now. When this client's card is issued automatically, your device's connection and this country are sent with the application for fraud checks."}>
@@ -354,10 +356,20 @@ export default function AddCardholderDialog({ open, onOpenChange, onCreated, mod
   }
 }
 
-function IdPhotoPicker({ photo, label, hint, onChange, disabled }) {
+function IdPhotoPicker({ photo, label, hint, onChange, onRemove, disabled }) {
   const [open, setOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
   const cameraRef = React.useRef(null);
   const galleryRef = React.useRef(null);
+  useEffect(() => {
+    if (!photo) {
+      setPreviewUrl("");
+      return undefined;
+    }
+    const url = URL.createObjectURL(photo);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
   const choose = (ref) => {
     setOpen(false);
     ref.current?.click();
@@ -384,6 +396,23 @@ function IdPhotoPicker({ photo, label, hint, onChange, disabled }) {
       </Popover>
       <input ref={cameraRef} type="file" accept="image/jpeg,image/png" capture="environment" className="sr-only" onChange={onChange} />
       <input ref={galleryRef} type="file" accept="image/jpeg,image/png" className="sr-only" onChange={onChange} />
+      {photo && previewUrl && (
+        <div className="relative mt-2 overflow-hidden rounded-xl border border-border bg-secondary/30">
+          <img src={previewUrl} alt={`${label} preview`} className="max-h-56 w-full object-contain" />
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            aria-label={`Remove ${label.toLowerCase()}`}
+            title={`Remove ${label.toLowerCase()}`}
+            disabled={disabled}
+            onClick={onRemove}
+            className="absolute right-2 top-2 h-8 w-8 rounded-full shadow"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
     </Field>
   );
 }
